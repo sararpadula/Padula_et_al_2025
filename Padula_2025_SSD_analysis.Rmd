@@ -111,7 +111,7 @@ BSPopplotBCCH <- BSpopBCCH %>%
 
 mochBox <- ggplot(data= BSpopMOCH, aes(x = Sex, y = Wing.Chord)) +
   geom_boxplot(aes(fill = Sex), alpha = 0.8, outlier.alpha = 0, width = 0.5) +
-  geom_line(aes(x=Sex, y=Wing.Chord, group = Nest.ID), alpha=0.1, size=0.4) +
+  geom_line(aes(x=Sex, y=Wing.Chord, group = Nest.ID), alpha=0.1, linewidth=0.4) +
   geom_point(data=BSPopplotMOCH, aes(x=Sex, y=Wing.Chord, size=n2), alpha=0.5) +
   theme_cowplot() + 
   scale_fill_manual(values=c("#E1BE6A","#40B0a6")) +
@@ -119,7 +119,13 @@ mochBox <- ggplot(data= BSpopMOCH, aes(x = Sex, y = Wing.Chord)) +
     legend.position="none",
   ) +
   xlab("Sex") +
-  ylab("Wing length (mm)")
+  ylab("Wing length (mm)")+
+       theme(
+    axis.title.x = element_text(size = 12),  
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
+  )
 
 BSMOCH <- subset(BS, Species == "MOCH")
 BSBCCH <- subset(BS, Species == "BCCH")
@@ -127,12 +133,18 @@ BSBCCH <- subset(BS, Species == "BCCH")
 
 bcchBox <-ggplot(data= BSpopBCCH, aes(x = Sex, y = Wing.Chord))+
   geom_boxplot(aes(fill = Sex), alpha = 0.8, outlier.alpha = 0, width = 0.5)+
-  geom_line(aes(x=Sex, y=Wing.Chord, group = Nest.ID), alpha=0.1, size=0.4)+
+  geom_line(aes(x=Sex, y=Wing.Chord, group = Nest.ID), alpha=0.1, linewidth=0.4)+
   geom_point(data=BSPopplotBCCH, aes(x=Sex, y=Wing.Chord,size=n2),alpha=0.5)+
   theme_cowplot() + scale_fill_manual(values=c("#E1BE6A","#40B0a6"))+
   theme(legend.position="")+
   xlab("Sex")+
-  ylab("")
+  ylab("")+
+       theme(
+    axis.title.x = element_text(size = 12),  
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
+  )
 
 
 #plot wing length 
@@ -140,28 +152,42 @@ mochLine <-ggplot(data = BSMOCH, aes(x=Female.Wing.Chord, y= Male.Wing.Chord))+
   geom_point(size=3,alpha=0.3) +
   theme_cowplot()+
   geom_smooth(method="lm",color="black")+
-  xlab("Female Wing Length (mm)")+
-  ylab("Male Wing Length (mm)")+
-  stat_regline_equation(aes(label = paste(after_stat(eq.label), after_stat(rr.label), sep = "~~~~")),label.x=66, label.y=72.5)+
+  xlab("Female wing length (mm)")+
+  ylab("Male wing length (mm)")+
+  stat_regline_equation(aes(label = paste(after_stat(eq.label), after_stat(rr.label), sep = "~~~~")),label.x=62.5, label.y=66)+
   theme(    axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)),  # Moves x-axis text downward
             axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0))   # Moves y-axis text leftward
+  )+
+       theme(
+    axis.title.x = element_text(size = 12),  
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
   )
 
 bcchLine <-ggplot(data = BSBCCH, aes(x=Female.Wing.Chord, y= Male.Wing.Chord))+
   geom_point(size=3,alpha=0.3) +
   theme_cowplot()+
   geom_smooth(method="lm",color="black")+
-  xlab("Female Wing Length (mm)")+
-  ylab("Male Wing Length (mm)")+
-  stat_regline_equation(aes(label = paste(after_stat(eq.label), after_stat(rr.label), sep = "~~~~")),label.x=66, label.y=72)+
+  xlab("Female wing length (mm)")+
+  ylab("Male wing length (mm)")+
+  stat_regline_equation(aes(label = paste(after_stat(eq.label), after_stat(rr.label), sep = "~~~~")),label.x=62, label.y=72.5)+
   theme(
     axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)),  # Moves x-axis text downward
     axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0))   # Moves y-axis text leftward 
+  )+
+      theme(
+    axis.title.x = element_text(size = 12),  
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
   )
 
 
 
 boxp <- (mochBox + bcchBox)/(mochLine + bcchLine)
+
+ggsave("boxandlineplot1.png", plot = boxp, width = 8, height = 4, dpi = 300)
 
 ```
 
@@ -211,8 +237,8 @@ for(i in 1:nrow(rand.results1)){
 ##Plot results
 rand.results1 = as.data.frame(rand.results1)
 mochPermFL<- ggplot() + geom_histogram(data=rand.results1,aes(x=V1*100),bins=10,fill="#cc79a7",color="black") + 
-  geom_vline(aes(xintercept=obs.n1*100),color="black",size=1.8) +
-  geom_vline(aes(xintercept=obs.n1*100),color="#ADD8E6",size=1) + 
+  geom_vline(aes(xintercept=obs.n1*100),color="black",linewidth=1.8) +
+  geom_vline(aes(xintercept=obs.n1*100),color="#ADD8E6",linewidth=1) + 
   theme_cowplot() + xlab("Percent female larger\npairings") + ylab("Count")
 
 #Calculate significance
