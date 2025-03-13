@@ -1,0 +1,2199 @@
+---
+title: "Padula_2025_Bayesian_Inference_Analysis"
+author: "Sara Padula"
+date: "2025-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+#read in libraries
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+#read in data
+bodysize <- read.csv("dsData.csv")
+
+#ensure group and year are treated as factors
+bodysize$Group <- as.factor(bodysize$Group)
+bodysize$Year <- as.factor(bodysize$Year)
+
+#subset by species
+MOCH <- bodysize %>% filter(Species == "MOCH")
+BCCH <- bodysize %>% filter(Species == "BCCH")
+
+MOCH.fe <- MOCH %>% filter(!is.na(First.Egg))
+BCCH.fe <- BCCH %>% filter(!is.na(First.Egg))
+MOCH.nw <- MOCH %>% filter(!is.na(Avg_Nestling_Weight))   
+BCCH.nw <- BCCH %>% filter(!is.na(Avg_Nestling_Weight))   
+MOCH.cs <- MOCH %>% filter(!is.na(Egg_Number))
+BCCH.cs <- BCCH %>% filter(!is.na(Egg_Number))
+MOCH.nn <- MOCH %>% filter(!is.na(Nestling_Number))
+BCCH.nn <- BCCH %>% filter(!is.na(Nestling_Number))
+MOCH.fs <- MOCH %>% filter(!is.na(Female_SMI))
+BCCH.fs <- BCCH %>% filter(!is.na(Female_SMI))
+MOCH.ms <- MOCH %>% filter(!is.na(Male_SMI))
+BCCH.ms <- BCCH %>% filter(!is.na(Male_SMI))
+MOCH.p <- MOCH %>% filter(!is.na(Provisioning))
+BCCH.p <- BCCH %>% filter(!is.na(Provisioning))
+```
+
+Plot male wing length predicted by female wing length grouped by nestbox cluster and year in MOCH
+
+```{r}
+ggplot(MOCH, aes(x = Female.Wing.Chord, y = Male.Wing.Chord, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+Plot male wing length predicted by female wing length grouped by nestbox cluster and year in BCCH
+
+```{r}
+ggplot(BCCH, aes(x = Female.Wing.Chord, y = Male.Wing.Chord, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+Plot date of first egg predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.fe, aes(x = Wing_Difference, y = First.Egg, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot date of first egg predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.fe, aes(x = Wing_Difference, y = First.Egg, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot average nestling weight predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.nw, aes(x = Wing_Difference, y = Avg_Nestling_Weight, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot average nestling weight predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.nw, aes(x = Wing_Difference, y = Avg_Nestling_Weight, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot clutch size predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.cs, aes(x = Wing_Difference, y = Egg_Number, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot clutch size predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.cs, aes(x = Wing_Difference, y = Egg_Number, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot brood size predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.nn, aes(x = Wing_Difference, y = Nestling_Number, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot brood size predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.nn, aes(x = Wing_Difference, y = Nestling_Number, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot provisioning predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.p, aes(x = Wing_Difference, y = Provisioning, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot provisioning predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.p, aes(x = Wing_Difference, y = Provisioning, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot female SMI predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.fs, aes(x = Wing_Difference, y = Female_SMI, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot female SMI predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.fs, aes(x = Wing_Difference, y = Female_SMI, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot male SMI predicted by wing difference grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH.ms, aes(x = Wing_Difference, y = Male_SMI, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Plot male SMI predicted by wing difference grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH.ms, aes(x = Wing_Difference, y = Male_SMI, group = interaction(Group, Year)))+
+  geom_point(aes(color = Group,shape = Year))+
+  theme_classic()
+```
+
+
+Looking at histograms of the predictor variables grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH, aes(x = Female.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Female Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH, aes(x = Female.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Female Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Wing length difference (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency")
+```
+
+
+Looking at histograms of the predictor variables grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH, aes(x = Female.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Female Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 3) +
+  theme_classic()
+
+ggplot(BCCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 3) +
+  theme_classic()
+
+ggplot(BCCH, aes(x = Female.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Female Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency")
+
+ggplot(BCCH, aes(x = Wing_Difference)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Wing length difference (mm)", y = "Frequency")
+```
+
+
+
+Looking at histograms of the response variables grouped by nestbox cluster and year in MOCH
+```{r}
+ggplot(MOCH, aes(x = Male.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Male Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.fe, aes(x = First.Egg)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.nw, aes(x = Avg_Nestling_Weight)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.cs, aes(x = Egg_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Clutch Size", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.nn, aes(x = Nestling_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Brood Size", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.p, aes(x = Provisioning)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Provisioning rate", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.fs, aes(x = Female_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Female body condition", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH.ms, aes(x = Male_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Male body condition", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(MOCH, aes(x = Male.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Male Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.fe, aes(x = First.Egg)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.nw, aes(x = Avg_Nestling_Weight)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.cs, aes(x = Egg_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Clutch Size", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.nn, aes(x = Nestling_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Brood Size", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.p, aes(x = Provisioning)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Provisioning rate", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.fs, aes(x = Female_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Female body condition", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(MOCH.ms, aes(x = Male_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Male body condition", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+```
+
+
+Looking at histograms of the response variables grouped by nestbox cluster and year in BCCH
+```{r}
+ggplot(BCCH, aes(x = Male.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Male Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.fe, aes(x = First.Egg)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.nw, aes(x = Avg_Nestling_Weight)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.cs, aes(x = Egg_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Clutch Size", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.nn, aes(x = Nestling_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Brood Size", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.p, aes(x = Provisioning)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Provisioning rate", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.fs, aes(x = Female_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Female body condition", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH.ms, aes(x = Male_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Male body condition", y = "Frequency") +
+  facet_wrap(~ Group, nrow = 4) +
+  theme_classic()
+
+ggplot(BCCH, aes(x = Male.Wing.Chord)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(x = "Male Wing Chord (mm)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.fe, aes(x = First.Egg)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.nw, aes(x = Avg_Nestling_Weight)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Average Nestling Weight (g)", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.cs, aes(x = Egg_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Clutch Size", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.nn, aes(x = Nestling_Number)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Brood Size", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.p, aes(x = Provisioning)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Provisioning rate", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.fs, aes(x = Female_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Female body condition", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+ggplot(BCCH.ms, aes(x = Male_SMI)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs( x = "Male body condition", y = "Frequency") +
+  facet_wrap(~ Year, nrow = 2) +
+  theme_classic()
+
+```
+
+
+Now I must determine what distributions to use for our models. Well, typically body measurement data is treated as normal and histograms confirm that the body measurements in this study tend towards a normal distribution even when split into categories. Thus, for female wing chord, male wing chord, average nestling mass, female SMI, and male SMI I will use a normal distribution for my models. When wing length difference is plotted it also follows a normal distribution, so I will use a normal distribution for that as well. Since count data typically follows a poisson distribution I will use a poisson distribution for clutch size, brood size, and provisioning rate.
+
+The mathematical model
+
+In this model, beta represents the overall mean wing length difference among years, E_k[i] is the deviation of year k wing length difference mean from overall mean, C_j[i] is the deviation of cluster j mean wing length difference from year k mean wing length difference, and e is the residual: deviation of social pair i from cluster j mean. 
+
+$$
+y_{i} = \beta_0 + E_k{i} + C_j{i} + e{i}
+$$
+
+
+-------------------MOUNTAIN CHICKADEE ANALYSES-----------------------------
+-- Predicting First Egg -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts date of first egg within mountain chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 80 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(MOCH.fe$First.Egg)
+var(MOCH.fe$First.Egg)
+nrow(MOCH.fe)
+
+fit <- stan_glmer(
+  First.Egg ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.fe,
+  prior_intercept = normal(145, 95, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                         
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochFEPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+For each unit increase in Wing_Difference, the first egg date is predicted to be 0.5 days later on average. However, the uncertainty is relatively high (SD = 0.3), meaning the effect size could be smaller or larger.The model suggests larger wing differences within a pair may be associated with slightly later first egg dates.Year and site contribute substantial variation, indicating environmental or site-specific factors influence first egg timing. Model diagnostics are good (Rhat = 1, large effective sample sizes), so the results are reliable.
+
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There seems to be some variability in average day of first egg across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is considerable variation across year:nestling cluster groupings. 
+
+
+
+Comparing the true day of first egg data to the posterior predictive distribution.
+
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.fe %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Egg_Number, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Clutch Size",
+       x = "Observed Clutch Size", y = "Predicted Clutch Size")
+```
+
+-- Predicting average nestling mass -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts reproductive average nestling mass (g) within mountain chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 78 data points, 6 distinct years (2019-2024) and 27 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+
+
+fit <- stan_lmer(
+  Avg_Nestling_Weight ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.nw,
+  prior_intercept = normal(10, 4, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochMMPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+Here, we find that the average nestling mass in mountain chickadee social pairs is 10.7 g. For each 1 mm increase in wing length difference within social pairs, the expected increase in average nestling mass is 0.2 g, which is significant because the 10%-90% range does not include 0.
+
+Based on the mcse being close to 0 for most parameters I conclude that the estimates are precise. Because Rhat is 1.0 for all parameters, I conclude that the chains have converged successfully. Finally, because n_eff is well above 1000 for most parameters, I conclude that the posterior estimates are reliable.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+It seems that average nestling weight was lower than average in 2021 and 2024 and higher than average in 2023. Overall, the deviations are not substantial, though.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+Group SGRU had a much lower average nestling weight in 2022 and group MRS had a much higher average nestling weight in 2022. Otherwise, the average nestling weight is generally consistent across year:groups. One interesting pattern is that the 2024 groups tend to be below average and the 2023 groups tend to be above average, which is consistent with the observed pattern in the previous visualization.
+
+Overall, the interaction between year and nestbox cluster plays a crucial role in determining the average nestling weight. The specific combination of year and group can have a substantial impact on the outcome, with some combinations leading to significantly lower or higher nestling weights compared to the overall average.
+
+
+Comparing the true average nestling mass data to the posterior predictive distribution.
+
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.nw %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Avg_Nestling_Weight, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Avg Nestling Weight",
+       x = "Observed Avg Nestling Weight", y = "Predicted Avg Nestling Weight")
+```
+
+The points generally cluster around the 1:1 line, with more variability at the higher and lower ends. The vertical lines are relatively narrow so the models predictions have pretty good precision. I would conclude that the model is generally capturing the relationship between the predictors and the response variable, but there is still some unexplained variability.
+
+
+-- Predicting clutch size -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts clutch size within mountain chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 80 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(MOCH.cs$Egg_Number)
+var(MOCH.cs$Egg_Number)
+nrow(MOCH.cs)
+
+fit <- stan_glmer(
+  Egg_Number ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.cs,
+  family = poisson(),  # Specify Poisson likelihood for count data
+  prior_intercept = normal(1.9, 2, autoscale = TRUE),  
+  prior = normal(3.3, 2),                             
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochCSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Based on this model the expected clutch size is around 7.39 eggs when the wing difference is 0. There is no evidence that the difference in wing length between males and females influences clutch size. The posterior predictive mean (6.8) closely matches the observed mean clutch size (6.7), suggesting the model fits the data well. Rhat is 1.0 for all parameters and effective sample sizes are sufficiently high.
+
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+Clutch size seems to be lower in 2022, but the effect is very minimal.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Clutch size in SGRU was much lower than average in 2022. There seems to be slight clutch size variability across the nestling cluster/ year groupings.
+
+
+
+Comparing the true clutch size data to the posterior predictive distribution.
+
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.cs %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Egg_Number, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Clutch Size",
+       x = "Observed Clutch Size", y = "Predicted Clutch Size")
+```
+
+-- Predicting brood size -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts brood size within mountain chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 80 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(MOCH.nn$Nestling_Number)
+var(MOCH.nn$Nestling_Number)
+nrow(MOCH.nn)
+
+fit <- stan_glmer(
+  Nestling_Number ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.nn,
+  family = neg_binomial_2(),  # Negative Binomial likelihood for overdispersed count data
+  prior_intercept = normal(5.5, 2.9, autoscale = TRUE),  
+  prior = normal(3.3, 2),                             
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochBSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+The model suggests that while Wing_Difference has a small negative effect on the number of nestlings, this effect is not strongly supported by the data (since the credible interval includes zero). Year and group-level variability are captured in the random effects, with no substantial shifts in the intercept across different years or groups.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+The variation in brood size across years is small.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+The variability in brood size is effectively 0 across year/nestling cluster groupings.
+
+Comparing the true brood size data to the posterior predictive distribution.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.nn %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Nestling_Number, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Brood Size",
+       x = "Observed Brood Size", y = "Predicted Brood Size")
+```
+The points generally follow the 1:1 line aside from the extremes.
+
+
+
+-- Predicting provisioning rate -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts provisioning rate (number of times the parents provisioned nestlings in one hour of observation) within mountain chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 38 data points, 4 distinct years (2019, 2020, 2021, 2024) and 14 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(MOCH.p$Provisioning)
+var(MOCH.p$Provisioning)
+nrow(MOCH.p)
+
+fit <- stan_glmer(
+  Provisioning ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.p,
+  prior_intercept = normal(18, 36, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+summary(fit)
+
+
+library(bayesplot)
+posterior_samples <- as.matrix(fit)
+
+mochPPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+
+```
+
+For every 1 unit increase in wing difference, provisioning decreases by about 0.2 units. This relationship is weak, as the credible interval for Wing_Difference spans from -0.7 to 0.4, indicating considerable uncertainty. The random effects show that there is considerable variation in provisioning across different years and year-group combinations. 
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is some variability in provisioning rate across years.
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is a lot of variability of provisioning rate across Year:Groups.
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.p %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Provisioning, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Provisioning Rate",
+       x = "Observed Provisioning Rate", y = "Predicted Provisioning Rate")
+```
+Most of the predictions lie close to the dashed line, but there is some spread and uncertainty, especially at higher provisioning rates.
+
+
+-- Predicting female SMI -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts female parent body mass index (SMI) within black-capped chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 79 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+
+mean(MOCH.fs$Female_SMI)
+var(MOCH.fs$Female_SMI)
+
+fit <- stan_lmer(
+  Female_SMI ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.fs,
+  prior_intercept = normal(11.4, 0.79, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochFSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+There is little to no effect of wing difference on female SMI. There is a lot of variation in Female_SMI across years and year/nestbox cluster groupings.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is not much variability in Female SMI across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is generally low variability in Female SMI across year:groups aside from two outliers: 2019:BLDM and 2023:FORP.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.fs %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Female_SMI, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Female SMI",
+       x = "Observed Female SMI", y = "Predicted Female SMI")
+```
+The points cluster around the 1:1 line in the mid-range of Female SMI. There is more variability around the extreme values of female SMI.
+
+
+
+-- Predicting male SMI -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts male parent body mass index (SMI) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 79 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+
+mean(MOCH.ms$Male_SMI)
+var(MOCH.ms$Male_SMI)
+
+fit <- stan_lmer(
+  Male_SMI ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = MOCH.ms,
+  prior_intercept = normal(11.6, 0.6, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+mochMSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+The model suggests that there is little to no effect of Wing Difference on Male SMI. The random effects related to Year and Group also show small deviations from the intercept, indicating that these factors do not significantly explain the variability in Male SMI. The residual variation is modest, and MCMC diagnostics suggest that the model has converged well.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is not much variability in Male SMI across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is some variability captured in the year/nestling cluster groupings.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- MOCH.ms %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Male_SMI, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Male SMI",
+       x = "Observed Male SMI", y = "Predicted Male SMI")
+```
+The points cluster around the 1:1 line in the mid-range of male SMI. There is more variability around the extreme values of male SMI.
+
+
+-------------------BLACK-CAPPED CHICKADEE ANALYSES-----------------------------
+-- Predicting day of first egg -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts reproductive average nestling mass (g) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 54 data points, 6 distinct years (2019-2024) and 21 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(BCCH.fe$First.Egg)
+var(BCCH.fe$First.Egg)
+
+fit <- stan_lmer(
+  First.Egg ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.fe,
+  prior_intercept = normal(124, 91.5, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchFEPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Our Bayesian hierarchical model suggests that greater sexual size dimorphism (higher Wing_Difference) is associated with slightly earlier first egg dates (~0.6 days per unit increase), with 90% credibility that the effect is negative or zero. Year and Year:Group effects introduce substantial variation, with some years exhibiting delayed or earlier breeding. The model converged well and explained inter-year variation effectively.
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+Day of first egg varies year-to-year
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is very little variability in day of first egg across year/nestbox cluster groupings.
+
+
+Comparing the true average nestling mass data to the posterior predictive distribution.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.fe %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = First.Egg, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Day of First Egg",
+       x = "Observed Day of First Egg", y = "Predicted Day of First Egg")
+```
+The model captures the relationship between the predictors and the outcome well with some uncertainty around the extremes.
+
+
+-- Predicting average nestling mass -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts reproductive average nestling mass (g) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 54 data points, 6 distinct years (2019-2024) and 21 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(BCCH.nw$Avg_Nestling_Weight)
+var(BCCH.nw$Avg_Nestling_Weight)
+
+fit <- stan_lmer(
+  Avg_Nestling_Weight ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.nw,
+  prior_intercept = normal(10.3, 1.2, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchMMPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Wing difference does not strongly impact average nestling weight, and most variation in average nestling weight comes from differences between years.
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+Average nestling weight varied greatly in 2022 and 2023 from the other years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is very little variability in average nestling weight across year/nestbox cluster groupings.
+
+
+Comparing the true average nestling mass data to the posterior predictive distribution.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.nw %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Avg_Nestling_Weight, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Avg Nestling Weight",
+       x = "Observed Avg Nestling Weight", y = "Predicted Avg Nestling Weight")
+```
+The model captures the relationship between the predictors and the outcome well with some uncertainty around the extremes.
+
+-- Predicting clutch size -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts clutch size within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 62 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(BCCH.cs$Egg_Number)
+var(BCCH.cs$Egg_Number)
+nrow(BCCH.cs)
+
+fit <- stan_glmer(
+  Egg_Number ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.cs,
+  family = poisson(),  # Specify Poisson likelihood for count data
+  prior_intercept = normal(5.9, 0.9, autoscale = TRUE),  
+  prior = normal(3.3, 2),                             
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchCSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Wing length does not predict clutch size and the random effects do not explain the substantial variation in clutch size. The model converged well and aligns closely with the observed data.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is very little variance in clutch size across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+There is basically 0 variability in clutch size across the year/nestbox cluster groupings.
+
+
+
+Comparing the true clutch size data to the posterior predictive distribution.
+
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.cs %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Egg_Number, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Clutch Size",
+       x = "Observed Clutch Size", y = "Predicted Clutch Size")
+```
+The points generally land around the 1:1 line, but there is more variability at the extremes.
+
+-- Predicting brood size -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts brood size within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 80 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(BCCH.nn$Nestling_Number)
+var(BCCH.nn$Nestling_Number)
+nrow(BCCH.nn)
+
+fit <- stan_glmer(
+  Nestling_Number ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.nn,
+  family = neg_binomial_2(),  # Negative Binomial likelihood for overdispersed count data
+  prior_intercept = normal(4.7, 2.4, autoscale = TRUE),  
+  prior = normal(3.3, 2),                             
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchBSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Wing differences does not significantly affect the bcch brood size and the random effects minimally contribute to the variation in brood size. The model converges well otherwise.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+The variation in brood size across years is effectively 0.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+The variability in brood size is effectively 0 across year/nestling cluster groupings.
+
+Comparing the true brood size data to the posterior predictive distribution.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.nn %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Nestling_Number, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Brood Size",
+       x = "Observed Brood Size", y = "Predicted Brood Size")
+```
+The points generally follow the 1:1 line aside from the extremes.
+
+
+
+-- Predicting provisioning rate -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts provisioning rate (number of times the parents provisioned nestlings in one hour of observation) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 49 data points, 4 distinct years (2019-2024) and 14 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+mean(BCCH.p$Provisioning)
+var(BCCH.p$Provisioning)
+nrow(BCCH.p)
+
+fit <- stan_glmer(
+  Provisioning ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.p,
+  prior_intercept = normal(18, 76, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchPPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+There is a weak association between wing difference and provisioning; thus, no relationship may exist. There is substantial variability in the random effects, so some group-level factors may be influencing provisioning rates in BCCH.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is some variability in provisioning rate across years.
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is a lot of variability of provisioning rate across Year:Groups.
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.p %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Provisioning, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Provisioning Rate",
+       x = "Observed Provisioning Rate", y = "Predicted Provisioning Rate")
+```
+Most of the predictions lie close to the dashed line, but there is some spread and uncertainty, especially at higher provisioning rates.
+
+
+-- Predicting female SMI -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts female parent body mass index (SMI) within black-capped chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 66 data points, 6 distinct years (2019-2024) and 26 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+
+mean(BCCH.fs$Female_SMI)
+var(BCCH.fs$Female_SMI)
+
+fit <- stan_lmer(
+  Female_SMI ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.fs,
+  prior_intercept = normal(11, 0.8, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchFSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+There is little to no effect of wing difference on female SMI. There are small effects from year and year/nestbox cluster groupings, but there is some unexplained variability. Overall, the model fits the data well.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is not much variability in Female SMI across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is generally low variability in Female SMI across year:groups.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.fs %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Female_SMI, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Female SMI",
+       x = "Observed Female SMI", y = "Predicted Female SMI")
+```
+The points cluster around the 1:1 line in the mid-range of Female SMI. There is more variability around the extreme values of female SMI.
+
+
+
+-- Predicting male SMI -- 
+
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts male parent body mass index (SMI) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+
+The dataset includes 64 data points, 6 distinct years (2019-2024) and 26 distinct Year:Nestbox Cluster combinations.
+```{r}
+library(dplyr)
+library(tidyr)
+
+
+library(rstanarm)
+
+mean(BCCH.ms$Male_SMI)
+var(BCCH.ms$Male_SMI)
+
+fit <- stan_lmer(
+  Male_SMI ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  data = BCCH.ms,
+  prior_intercept = normal(11.6, 0.6, autoscale = TRUE),  
+  prior_aux = cauchy(0,5),       
+  prior = normal(3.3, 2),                             
+  
+  chains = 4,
+  iter = 2000,
+  seed = 1234,
+  adapt_delta = 0.99
+)
+
+# Summarize results
+summary(fit)
+
+posterior_samples <- as.matrix(fit)  
+
+bcchMSPlot <- mcmc_areas(posterior_samples, pars = c("Wing_Difference"),
+           prob = 0.9) +  
+  labs(
+       x = "",
+       y = "")
+
+```
+
+Wing difference is significantly negatively associated with male SMI. So, as the size difference between the male and female increases, the male SMI tends to decrease. There are some year-group deviations from the overall intercept. The model fits the data well.
+
+
+Visualizing the random effects of the model
+
+```{r}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+
+library(tibble)
+
+# Extract random effects
+ranef_estimates <- ranef(fit)
+
+# View random effects for Year and Year:Group
+year_effects <- ranef_estimates$Year
+year_group_effects <- ranef_estimates$`Year:Group`
+
+# Print to inspect
+print(year_effects)
+print(year_group_effects)
+
+library(ggplot2)
+
+# Year random effects
+year_effects_df <- as.data.frame(year_effects) %>%
+  rownames_to_column(var = "Year") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_effects_df, aes(x = Year, y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year", y = "Effect", x = "Year")
+```
+There is not much variability in Male SMI across years.
+
+```{r}
+# Year:Group random effects
+year_group_effects_df <- as.data.frame(year_group_effects) %>%
+  rownames_to_column(var = "Year:Group") %>%
+  rename(Effect = `(Intercept)`)
+
+ggplot(year_group_effects_df, aes(x = reorder(`Year:Group`, Effect), y = Effect)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Random Effects: Year:Group", y = "Effect", x = "Year:Group") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+There is some variability captured in the year/nestling cluster groupings.
+
+```{r}
+
+# Generate posterior predictions
+posterior_preds <- posterior_predict(fit)
+
+# Summarize predictions (mean, 10%, 90% quantiles)
+pred_summary <- apply(posterior_preds, 2, function(x) {
+  c(mean = mean(x), lower = quantile(x, 0.1), upper = quantile(x, 0.9))
+})
+pred_summary <- as.data.frame(t(pred_summary))
+
+# Combine with observed data
+observed_vs_pred <- BCCH.ms %>%
+  mutate(Predicted_Mean = pred_summary$mean,
+         Predicted_Lower = pred_summary$lower,
+         Predicted_Upper = pred_summary$upper)
+
+ggplot(observed_vs_pred, aes(x = Male_SMI, y = Predicted_Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Predicted_Lower, ymax = Predicted_Upper), alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Observed vs. Predicted Male SMI",
+       x = "Observed Male SMI", y = "Predicted Male SMI")
+```
+The points cluster around the 1:1 line in the mid-range of male SMI. There is more variability around the extreme values of male SMI.
+
+
+Putting the plots together
+
+```{r}
+library(patchwork)
+
+bcchplot1 <- (bcchFEPlot + bcchCSPlot)/ (bcchBSPlot + bcchMMPlot)/(bcchFSPlot + bcchMSPlot)/(bcchPPlot+bcchPPlot)
+
+
+mochplot1 <- (mochFEPlot + mochCSPlot)/ (mochBSPlot + mochMMPlot)/(mochFSPlot + mochMSPlot)/(mochPPlot+mochPPlot)
+
+
+ggsave("bcchmodelplot1.png", plot = bcchplot1, width = 6, height = 4, dpi = 300)
+
+ggsave("mochmodelplot1.png", plot = mochplot1, width = 6, height = 4, dpi = 300)
+```
