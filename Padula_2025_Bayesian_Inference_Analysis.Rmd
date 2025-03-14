@@ -21,6 +21,19 @@ library(dplyr)
 #read in data
 bodysize <- read.csv("dsData.csv")
 
+## Scaling elevation variable for each species
+breedMOCH <- bodysize %>%
+  filter(Species == "MOCH") %>%
+  mutate(scale_ele = scale(Elevation))
+
+breedBCCH <- bodysize %>%
+  filter(Species == "BCCH") %>%
+  filter(Elevation < 2000) %>%
+  mutate(scale_ele = scale(Elevation))
+
+bodysize <- rbind(breedMOCH, breedBCCH)
+
+
 #ensure group and year are treated as factors
 bodysize$Group <- as.factor(bodysize$Group)
 bodysize$Year <- as.factor(bodysize$Year)
@@ -31,6 +44,20 @@ BCCH <- bodysize %>% filter(Species == "BCCH")
 
 MOCH.fe <- MOCH %>% filter(!is.na(First.Egg))
 BCCH.fe <- BCCH %>% filter(!is.na(First.Egg))
+
+# Centering within year
+MOCH.fe$First.Egg_YearCentered <- ave(MOCH.fe$First.Egg, MOCH.fe$Year, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+# Centering within elevation (after year)
+MOCH.fe$First.Egg_Scaled <- ave(MOCH.fe$First.Egg_YearCentered, MOCH.fe$scale_ele, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+# Centering within year
+BCCH.fe$First.Egg_YearCentered <- ave(BCCH.fe$First.Egg, BCCH.fe$Year, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+# Centering within elevation (after year)
+BCCH.fe$First.Egg_Scaled <- ave(BCCH.fe$First.Egg_YearCentered, BCCH.fe$scale_ele, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+
 MOCH.nw <- MOCH %>% filter(!is.na(Avg_Nestling_Weight))   
 BCCH.nw <- BCCH %>% filter(!is.na(Avg_Nestling_Weight))   
 MOCH.cs <- MOCH %>% filter(!is.na(Egg_Number))
@@ -465,14 +492,14 @@ library(tidyr)
 
 
 library(rstanarm)
-mean(MOCH.fe$First.Egg)
-var(MOCH.fe$First.Egg)
+mean(MOCH.fe$First.Egg_Scaled)
+var(MOCH.fe$First.Egg_Scaled)
 nrow(MOCH.fe)
 
 fit <- stan_glmer(
-  First.Egg ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  First.Egg_Scaled ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
   data = MOCH.fe,
-  prior_intercept = normal(145, 95, autoscale = TRUE),  
+  prior_intercept = normal(0, 18.02, autoscale = TRUE),  
   prior_aux = cauchy(0,5),       
   prior = normal(3.3, 2),                         
   chains = 4,
@@ -1203,7 +1230,7 @@ The points cluster around the 1:1 line in the mid-range of Female SMI. There is 
 
 -- Predicting male SMI -- 
 
-Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts male parent body mass index (SMI) within black-capped chickadee (*poecile atricapillus*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
+Fitting the model with rstanarm. Here, I am asking if wing difference (male wing length (mm) - female wing length (mm)) predicts male parent body mass index (SMI) within black-capped chickadee (*poecile gambeli*). I am controlling for year and nestbox cluster to ensure most confounding variables are accounted for spatially and temporally.
 
 The dataset includes 79 data points, 6 distinct years (2019-2024) and 28 distinct Year:Nestbox Cluster combinations.
 ```{r}
@@ -1335,13 +1362,13 @@ library(tidyr)
 
 
 library(rstanarm)
-mean(BCCH.fe$First.Egg)
-var(BCCH.fe$First.Egg)
+mean(BCCH.fe$First.Egg_Scaled)
+var(BCCH.fe$First.Egg_Scaled)
 
 fit <- stan_lmer(
-  First.Egg ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
+  First.Egg_Scaled ~ Wing_Difference + (1 | Year) + (1 | Year:Group),
   data = BCCH.fe,
-  prior_intercept = normal(124, 91.5, autoscale = TRUE),  
+  prior_intercept = normal(0, 20.54, autoscale = TRUE),  
   prior_aux = cauchy(0,5),       
   prior = normal(3.3, 2),                             
   

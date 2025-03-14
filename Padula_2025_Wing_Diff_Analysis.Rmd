@@ -493,6 +493,9 @@ ggplot(breed, aes(x = Female.Wing.Chord, y = Male.Wing.Chord, color = Species)) 
 ## Breeding Success Analysis -- categorical wing difference (only male larger categories)
 
 ```{r}
+head(breed)
+breedCat <-breed[breed$Wing_Difference_Category %in% c("Much", "Slightly"), ]
+
 #first egg, removing blank values
 breedCat.fe <- breedCat %>% filter(!is.na(First.Egg))
 sum(breedCat.fe$Species == "MOCH") 
@@ -534,8 +537,15 @@ sum(breedCat.p$Species == "BCCH")
 ## Modeling date of first egg
 
 ```{r}
-fec1 <- lmer(First.Egg ~ Wing_Difference_Category*Species + Species*scale_ele + (1|Year), data = breedCat.fe)
-fec2 <- lmer(First.Egg ~ Wing_Difference_Category*Species + scale_ele + (1|Year), data = breedCat.fe)
+# Centering within year
+breedCat.fe$First.Egg_YearCentered <- ave(breedCat.fe$First.Egg, breedCat.fe$Year, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+# Centering within elevation (after year)
+breedCat.fe$First.Egg_Scaled <- ave(breedCat.fe$First.Egg_YearCentered, breedCat.fe$scale_ele, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+
+
+fec1 <- lmer(First.Egg_Scaled ~ Wing_Difference_Category*Species + Species*scale_ele + (1|Year), data = breedCat.fe)
+fec2 <- lmer(First.Egg_Scaled ~ Wing_Difference_Category*Species + scale_ele + (1|Year), data = breedCat.fe)
 
 AIC(fec1,fec2) #fe1 lower AIC
 anova(fec1,fec2) #significant
