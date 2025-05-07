@@ -40,52 +40,27 @@ BSpopI <- BSpop %>% distinct(ID, .keep_all = T)
 BSpopI$Year <- as.factor(BSpopI$Year)
 BSpopI$Bander <- as.factor(BSpopI$Bander)
 
+SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Year) + (1|Bander), data= BSpopI)
+SD2 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander), data= BSpopI)
 
-SD1 <- lm(Wing.Chord ~ Sex*Species + Year + Bander, data= BSpopI)
-SD2 <- lm(Wing.Chord ~ Sex + Species + Year + Bander, data= BSpopI)
-SD3 <- lm(Wing.Chord ~ Sex + Species + Year, data= BSpopI)
-SD4 <- lm(Wing.Chord ~ Sex + Species + Bander, data= BSpopI)
-SDn <- lm(Wing.Chord ~ Species + Year + Bander, data= BSpopI)
+anova(SD1, SD2, test = "F") #SD2 has lower AIC score
 
-anova(SD1, SD2, SD3, SD4, test = "F") # the interaction term is not important but year and bander are
-
+summary(SD1)
 summary(SD2)
 
-anova(SD2, SDn, test = "F")
+
+#Does wing length differ between the sexes within pairs?
+head(BS)
+
+SDp1 <- lmer(Wing_Difference ~ Species + (1|Year) + (1|FemaleBander) + (1|MaleBander), data= BS)
+SDp2 <- lmer(Wing_Difference ~ Species + (1|FemaleBander) + (1|MaleBander), data= BS)
 
 
-# Subset BSpop to only include rows where ID matches Male.ID or Female.ID in BS
-BSpairs <- BSpop[BSpop$ID %in% c(BS$Male.ID, BS$Female.ID), ]
+anova(SDp1, SDp2, test = "F") # SDp2 has lower AIC score
 
-# View the first few rows of BSpairs
-head(BSpairs)
+summary(SDp1)
+summary(SDp2)
 
-nrow(BSpairs)
-
-BSpairsMOCH <- BSpairs %>%
-  filter(Species == "MOCH")
-BSpairsBCCH <- BSpairs %>%
-  filter(Species == "BCCH")
-
-nrow(BSpairsMOCH)
-nrow(BSpairsBCCH)
-
-BSpairs$Year <- as.factor(BSpairs$Year)
-BSpairs$Bander <- as.factor(BSpairs$Bander)
-
-SDp1 <- lm(Wing.Chord ~ Sex*Species + Year + Bander, data= BSpairs)
-SDp2 <- lm(Wing.Chord ~ Sex + Species + Year + Bander, data= BSpairs)
-SDp3 <- lm(Wing.Chord ~ Sex + Species + Year, data= BSpairs)
-SDp4 <- lm(Wing.Chord ~ Sex + Species + Bander, data= BSpairs)
-SDpn <- lm(Wing.Chord ~ Species + Year, data= BSpairs)
-
-anova(SDp1, SDp2, SDp3, SDp4, test = "F")
-
-#the interaction term is not important and bander does not make a difference, and year is marginally important
-
-summary(SDp3)
-
-anova(SDp3, SDpn, test = "F")
 ```
 
 

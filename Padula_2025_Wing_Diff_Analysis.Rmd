@@ -399,38 +399,34 @@ bcchBreed$Female.Wing.Chord2 <- bcchBreed$Female.Wing.Chord^2
 
 #which quadratic model is the best?
 head(mochBreed)
-quadM1 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + FemaleBander + MaleBander + Year, data = mochBreed)
-quadM2 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + FemaleBander + MaleBander, data = mochBreed)
-quadM3 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + Year, data = mochBreed)
-quadM4 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2, data = mochBreed)
+quadM1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|FemaleBander) + (1|MaleBander) + (1|Year), data = mochBreed)
+quadM2 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|FemaleBander) + (1|MaleBander), data = mochBreed)
 
-anova(quadM1, quadM2, quadM3, quadM4, test = "F")
+anova(quadM1, quadM2, test = "F") #quadM2 has a lower AIC score
 
-#none of the additional factors improve model fit, the simplest model fits just as well
+summary(quadM2)
+
 
 #which linear model is the best?
 head(mochBreed)
-lmM1 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + FemaleBander + MaleBander + Year, data = mochBreed)
-lmM2 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + FemaleBander + MaleBander, data = mochBreed)
-lmM3 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Year, data = mochBreed)
-lmM4 <- lm(Male.Wing.Chord ~ Female.Wing.Chord, data = mochBreed)
+lmM1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|FemaleBander) + (1|MaleBander) + (1|Year), data = mochBreed)
+lmM2 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|FemaleBander) + (1|MaleBander), data = mochBreed)
 
-anova(lmM1, lmM2, lmM3, lmM4, test = "F")
 
-#adding predictors does not improve model fit, the simplest model fits just as well
+anova(lmM1, lmM2, test = "F") #lmM2 has a lower AIC score
 
-quadraticMoch <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2, data = mochBreed)
-lmMoch <- lm(Male.Wing.Chord ~ Female.Wing.Chord, data = mochBreed)
-nullMoch <- lm(Male.Wing.Chord ~ 1, data = mochBreed)
+summary(lmM2)
 
-summary(quadraticMoch)
-summary(lmMoch)
+#comparing the two models
 
-AIC(quadraticMoch,lmMoch) 
 
-#quadratic has a higher AIC score but not high enough to justify doing the more complex model
+nullMoch <- lmer(Male.Wing.Chord ~ 1 + (1|FemaleBander) + (1|MaleBander), data = mochBreed)
 
-anova(nullMoch,lmMoch)
+anova(quadM2,lmM2) #lmM2 has a lower AIC score
+
+summary(lmM2)
+
+anova(nullMoch, lmM2)
 
 #the model does not explain a meaningful amount of variation 
 
@@ -440,38 +436,32 @@ anova(nullMoch,lmMoch)
 
 #which quadratic model is the best?
 head(bcchBreed)
-quadB1 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + FemaleBander + MaleBander + Year, data = bcchBreed)
-quadB2 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + FemaleBander + MaleBander, data = bcchBreed)
-quadB3 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + Year, data = bcchBreed)
-quadB4 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2, data = bcchBreed)
+quadB1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|FemaleBander) + (1|MaleBander) + (1|Year), data = bcchBreed)
+quadB2 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|FemaleBander) + (1|MaleBander), data = bcchBreed)
 
-anova(quadB1, quadB2, quadB3, quadB4, test = "F")
+anova(quadB1, quadB2, test = "F") #quadB2 has a lower AIC score
 
-#male bander and female bander are essential, quadB2 is the best model fit
+summary(quadB2)
+
 
 #which linear model is the best?
 head(bcchBreed)
-lmB1 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + FemaleBander + MaleBander + Year, data = bcchBreed)
-lmB2 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + FemaleBander + MaleBander, data = bcchBreed)
-lmB3 <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Year, data = bcchBreed)
-lmB4 <- lm(Male.Wing.Chord ~ Female.Wing.Chord, data = bcchBreed)
+lmB1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|FemaleBander) + (1|MaleBander) + (1|Year), data = bcchBreed)
+lmB2 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|FemaleBander) + (1|MaleBander), data = bcchBreed)
 
-anova(lmB1, lmB2, lmB3, lmB4, test = "F")
 
-#male bander and female bander are essential, lmB2 is the best model fit
+anova(lmB1, lmB2, test = "F") #lmB2 has a lower AIC score
 
-quadraticBcch <- lm(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2, data = bcchBreed)
-lmBcch <- lm(Male.Wing.Chord ~ Female.Wing.Chord, data = bcchBreed)
-nullBcch <- lm(Male.Wing.Chord ~ FemaleBander + MaleBander, data = bcchBreed)
+summary(lmB2)
 
-summary(quadraticBcch)
-summary(lmBcch)
+nullBcch <- lmer(Male.Wing.Chord ~ (1|FemaleBander) + (1|MaleBander), data = bcchBreed)
 
-AIC(quadraticBcch,lmBcch) 
 
-#quadratic has a higher AIC score but not high enough to justify doing the more complex model
+AIC(quadB2,lmB2) 
 
-anova(nullBcch,lmBcch)
+#quadratic has a higher AIC score but not high enough to justify doing the more complex model (301 vs 296)
+
+anova(nullBcch,lmB2)
 
 #the model does not explain a meaningful amount of variation 
 
@@ -557,7 +547,8 @@ plot(fec1r)
 
 Anova(fec1,test.statistic = "Chisq",type="III")
 summary(fec1) #species, elevation, and species*elevation significant
-
+catPFEB <-0.059
+catPFEM <-0.093
 
 ```
 
@@ -579,6 +570,9 @@ plot(cs2r)
 Anova(cs2,test.statistic = "Chisq",type="III")
 summary(cs2) #species significant
 
+catPBSB <- 0.19
+catPBSM <-0.50
+
 ```
 
 ## Modeling brood size
@@ -599,6 +593,9 @@ plot(bs2r)
 Anova(bs2,test.statistic = "Chisq",type="III")
 summary(bs1) #nothing significant
 
+catPNNM <- 0.49
+catPNNB <- 0.89
+
 ```
 
 ## Modeling average nestling mass
@@ -618,6 +615,9 @@ plot(mm3r)
 #results
 Anova(mm3,test.statistic = "Chisq",type="III")
 summary(mm3) #wing_difference*species significant
+
+catPMMM <- 0.033
+catPMMB <- 0.69
 
 ```
 
@@ -640,6 +640,9 @@ plot(fs1r)
 Anova(fs1,test.statistic = "Chisq",type="III")
 summary(fs1) #species*elevation significant
 
+catPFSM <- 0.70
+catPFSB <- 0.74
+
 ```
 
 
@@ -659,6 +662,9 @@ plot(ms2r)
 #results
 Anova(ms2,test.statistic = "Chisq",type="III")
 summary(ms2) #wing_difference almost significant
+
+catPMSM <- 0.3055
+catPMSB <- 0.061
 
 ```
 
@@ -680,7 +686,23 @@ plot(p1r)
 Anova(p1,test.statistic = "Chisq",type="III")
 summary(p1) #nothing significant
 
+catPPM <- 0.64
+catPPB <- 0.57
+
 ```
+Adjust the p-values to account for multiple comparisons
+
+```{r}
+p_values <- c(catPFEM, catPFEB, catPBSM, catPBSB, catPNNM, catPNNB, catPMMM, catPMMB, catPFSM, catPFSB, catPMSM, catPMSB, catPPM, catPPB)
+
+p_adjusted <- p.adjust(p_values, method = "BH")
+
+p_adjusted
+
+```
+
+
+
 
 
 ## Plotting wing difference category comparisons
