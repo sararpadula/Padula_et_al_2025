@@ -24,6 +24,7 @@ library(emmeans)
 library(ggpubr)
 library(ggdist)
 library(patchwork)
+library(ggeffects)
 ```
 
 ## Load data
@@ -897,32 +898,6 @@ pBCCH <- (boxfebc+boxcsbc+boxbsbc+boxmmbc)/(boxfsbc+boxmsbc+boxpbc)
 
 ggsave("boxplotMOCH.png", plot = pMOCH, width = 7, height = 5, units = "in", dpi = 300)
 ggsave("boxplotBCCH.png", plot = pBCCH, width = 7, height = 5, units = "in", dpi = 300)
-
-
-```
-
-
-```{r}
-
-
-library(ggeffects)
-
-preds <- ggpredict(cs1, terms = c("Wing_Difference", "Species"))
-
-ggplot(preds, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 1.2) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "Wing Length Difference", y = "Predicted Clutch Size", color = "Species", fill = "Species") +
-  theme_minimal()
-
-library(ggeffects)
-preds <- ggpredict(bs1, terms = c("Wing_Difference", "Species"))
-
-ggplot(preds, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 1.2) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "Wing Length Difference", y = "Predicted Nestling Number", color = "Species", fill = "Species") +
-  theme_minimal()
 
 
 ```
