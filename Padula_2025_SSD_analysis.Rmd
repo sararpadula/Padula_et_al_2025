@@ -40,26 +40,17 @@ BSpopI <- BSpop %>% distinct(ID, .keep_all = T)
 BSpopI$Year <- as.factor(BSpopI$Year)
 BSpopI$Bander <- as.factor(BSpopI$Bander)
 
-SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Year) + (1|Bander), data= BSpopI)
-SD2 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander), data= BSpopI)
-
-anova(SD1, SD2, test = "F") #SD2 has lower AIC score
+SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander), data= BSpopI)
 
 summary(SD1)
-summary(SD2)
 
 
 #Does wing length differ between the sexes within pairs?
 head(BS)
 
-SDp1 <- lmer(Wing_Difference ~ Species + (1|Year) + (1|FemaleBander) + (1|MaleBander), data= BS)
-SDp2 <- lmer(Wing_Difference ~ Species + (1|FemaleBander) + (1|MaleBander), data= BS)
-
-
-anova(SDp1, SDp2, test = "F") # SDp2 has lower AIC score
+SDp1 <- lmer(Wing_Difference ~ Species + (1|Year), data= BS)
 
 summary(SDp1)
-summary(SDp2)
 
 ```
 
