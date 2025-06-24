@@ -104,17 +104,18 @@ sum(breed.p$Species == "BCCH")
 ## Modeling date of first egg
 
 ```{r}
-# Centering within year
-breed.fe$First.Egg_YearCentered <- ave(breed.fe$First.Egg, breed.fe$Year, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+# Add constant so log is defined (if needed)
+min_FE <- min(breed.fe$First.Egg, na.rm = TRUE)
+breed.fe$First.Egg_log <- log(breed.fe$First.Egg - min_FE + 1)
 
-# Centering within elevation (after year)
-breed.fe$First.Egg_Scaled <- ave(breed.fe$First.Egg_YearCentered, breed.fe$scale_ele, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
-
-breed.fe$scale_ele <- as.numeric(breed.fe$scale_ele)
+# Center the log-transformed First.Egg within Year × Elevation groups
+breed.fe$First.Egg_log_Centered <- ave(breed.fe$First.Egg_log, 
+                                       interaction(breed.fe$Year, breed.fe$scale_ele), 
+                                       FUN = function(x) scale(x, center = TRUE, scale = FALSE))
 
 ## Model first egg ######
-fe1 <- lmer(First.Egg_Scaled ~ Wing_Difference*Species + scale_ele + (1|Year), data = breed.fe)
-fe2 <- lmer(First.Egg_Scaled ~ Species + scale_ele + (1|Year), data = breed.fe)
+fe1 <- lmer(First.Egg_log_Centered ~ Wing_Difference*Species + scale_ele + (1|Year), data = breed.fe)
+fe2 <- lmer(First.Egg_log_Centered ~ Species + scale_ele + (1|Year), data = breed.fe)
 
 anova(fe2, fe1) #wing difference doesn't significantly improve model fit
 
@@ -127,9 +128,9 @@ plot(fe1r)
 
 summary(fe1) # species significant
 
-mochFEp <- 0.4817
+mochFEp <- 0.675
 
-bcchFEp <- 0.2326
+bcchFEp <- 0.628
 
 
 ```
@@ -137,6 +138,10 @@ bcchFEp <- 0.2326
 ## Modeling clutch size
 
 ```{r}
+
+
+
+
 cs1 <- glmmTMB(Egg_Number ~ Wing_Difference*Species, data =breed.cs,family = "genpois")
 cs2 <- glmmTMB(Egg_Number ~ Species, data=breed.cs, family="genpois") 
 
@@ -146,6 +151,12 @@ anova(cs1,cs2) # wing difference significantly improves model fit
 cs1r = simulateResiduals(cs1)
 plot(cs1r)
 #outliers significant on q-q plot
+
+res <- cs1r$scaledResiduals
+breed.cs$resid <- res
+breed.cs[abs(res) > 2.5, ]  # Inspect top outliers
+
+#no evidence of true outliers, proceed with this model
 
 summary(cs1) #species significant
 
@@ -284,7 +295,7 @@ Visualizing wing difference (numeric) predicting reproductive success variables.
 # Use your fitted model with Wing_Difference
 breed.fe$Species <- as.factor(breed.fe$Species)
 
-fe1 <- lmer(First.Egg_Scaled ~ Wing_Difference * Species + scale_ele + (1|Year), data = breed.fe)
+fe1 <- lmer(First.Egg_log_Centered ~ Wing_Difference * Species + scale_ele + (1|Year), data = breed.fe)
 
 # Generate predicted values over range of Wing_Difference for each species
 preds_a <- ggpredict(fe1, terms = c("Wing_Difference", "Species"))
@@ -425,46 +436,44 @@ ggsave("wingdiffRepVarPlot.png", plot = allLine, width = 6, height = 4, dpi = 30
 ## Does female wing length predict male wing length within pairs?
 
 ```{r}
-#subsetting data
+
+# Subset data by species
 mochBreed <- subset(breed, Species == "MOCH")
 bcchBreed <- subset(breed, Species == "BCCH")
 
-#create new variable for female wing chord
+### ---- MOCH: Does female wing predict male wing? ----
 
-mochBreed$Female.Wing.Chord2 <- mochBreed$Female.Wing.Chord^2
-
-bcchBreed$Female.Wing.Chord2 <- bcchBreed$Female.Wing.Chord^2
-
-#MOCH
-
-#which quadratic model is the best?
-head(mochBreed)
-quadM1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|Year), data = mochBreed)
+# Linear model
 linM1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|Year), data = mochBreed)
 
-anova(quadM1, linM1) #quadratic term doesnt improve model fit
-
+# Summary of model
 summary(linM1)
 
-#female wing length doesnt predict male wing length in mountain chickadees
+# Residual diagnostics
+linM1_res <- simulateResiduals(linM1)
+plot(linM1_res)
 
-#BCCH
+### ---- BCCH: Does female wing predict male wing? ----
 
-#Does female wing predict male wing in BCCH
-#female bander and male bander do not explain any variance so they are excluded. Year does explain variance so it is included.
-head(bcchBreed)
-quadB1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + Female.Wing.Chord2 + (1|Year), data = bcchBreed)
+# Linear model
 linB1 <- lmer(Male.Wing.Chord ~ Female.Wing.Chord + (1|Year), data = bcchBreed)
 
+# Summary of model
 summary(linB1)
 
-anova(quadB1, linB1)
+# Residual diagnostics
+linB1_res <- simulateResiduals(linB1)
+plot(linB1_res)
 
-#The quadratic model has a slightly lower AIC (better fit), but the likelihood ratio test is not significant (p = 0.11), meaning the addition of the quadratic term does not significantly improve model fit over the linear model.
 
-summary(linB1)
+# Pearson's correlation for MOCH
+moch_cor <- cor.test(mochBreed$Female.Wing.Chord, mochBreed$Male.Wing.Chord, method = "pearson")
+print(moch_cor)
 
-#female wing length doesnt predict male wing length in black-capped chickadees
+# Pearson's correlation for BCCH
+bcch_cor <- cor.test(bcchBreed$Female.Wing.Chord, bcchBreed$Male.Wing.Chord, method = "pearson")
+print(bcch_cor)
+
 
 ```
 
@@ -528,15 +537,16 @@ sum(breedCat.p$Species == "BCCH")
 ## Modeling date of first egg
 
 ```{r}
-# Centering within year
-breedCat.fe$First.Egg_YearCentered <- ave(breedCat.fe$First.Egg, breedCat.fe$Year, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+# Ensure elevation is numeric
+breedCat.fe$scale_ele <- as.numeric(breedCat.fe$scale_ele)
 
-# Centering within elevation (after year)
-breedCat.fe$First.Egg_Scaled <- ave(breedCat.fe$First.Egg_YearCentered, breedCat.fe$scale_ele, FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+# Center First.Egg within each Year × Elevation group
+breedCat.fe$First.Egg_Centered <- ave(breedCat.fe$First.Egg,
+                                      interaction(breedCat.fe$Year, breedCat.fe$scale_ele),
+                                      FUN = function(x) scale(x, center = TRUE, scale = FALSE))
 
-
-fec1 <- lmer(First.Egg_Scaled ~ Wing_Difference_Category*Species + scale_ele + (1|Year), data = breedCat.fe)
-fec2 <- lmer(First.Egg_Scaled ~ Species + scale_ele + (1|Year), data = breedCat.fe)
+fec1 <- lmer(First.Egg_Centered ~ Wing_Difference_Category*Species + scale_ele + (1|Year), data = breedCat.fe)
+fec2 <- lmer(First.Egg_Centered ~ Species + scale_ele + (1|Year), data = breedCat.fe)
 
 anova(fec1,fec2) #wing difference doesnt improve model fit
 
@@ -546,8 +556,8 @@ plot(fec1r)
 #strong deviation
 
 summary(fec1)
-catPFEB <-0.5776
-catPFEM <-0.1059
+catPFEB <-0.79
+catPFEM <-0.76
 
 ```
 
@@ -696,7 +706,7 @@ p_adjusted
 mochBreed.fe.plot <- subset(breed.fe, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
   subset(Species %in% c("MOCH"))
 
-boxfe <- ggplot(data=mochBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg)) +
+boxfe <- ggplot(data=mochBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg_log_Centered)) +
   geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
   geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
   theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
@@ -798,7 +808,7 @@ pMOCH <- (boxfe+boxcs+boxbs+boxmm)/(boxfs+boxms+boxp)
 bcchBreed.fe.plot <- subset(breed.fe, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
   subset(Species %in% c("BCCH"))
 
-boxfebc <- ggplot(data=bcchBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg)) +
+boxfebc <- ggplot(data=bcchBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg_log_Centered)) +
   geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
   geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
   theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +

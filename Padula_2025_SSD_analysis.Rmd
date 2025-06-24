@@ -23,6 +23,7 @@ library(lmerTest)
 library(DHARMa)
 library(climwin)
 library(patchwork)
+library(performance)
 ```
 
 Does sex predict wing length?
@@ -40,9 +41,16 @@ BSpopI <- BSpop %>% distinct(ID, .keep_all = T)
 BSpopI$Year <- as.factor(BSpopI$Year)
 BSpopI$Bander <- as.factor(BSpopI$Bander)
 
-SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander), data= BSpopI)
+SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander) + (1|Year), data= BSpopI)
 
 summary(SD1)
+
+# Model diagnostics
+check_model(SD1)
+
+# Simulate residuals
+simres_SD1 <- simulateResiduals(SD1)
+plot(simres_SD1)
 
 
 #Does wing length differ between the sexes within pairs?
@@ -51,6 +59,18 @@ head(BS)
 SDp1 <- lmer(Wing_Difference ~ Species + (1|Year), data= BS)
 
 summary(SDp1)
+
+# Model diagnostics
+check_model(SDp1)
+simres_SDp1 <- simulateResiduals(SDp1)
+plot(simres_SDp1)
+
+# R²
+r2(SDp1)
+
+# Residual and QQ plots
+plot(fitted(SDp1), resid(SDp1)); abline(h = 0, col = "red")
+qqnorm(resid(SDp1)); qqline(resid(SDp1), col = "red")
 
 ```
 
