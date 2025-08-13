@@ -2,7 +2,9 @@
 title: "Padula_2025_Wing_Diff_Analysis"
 author: "Sara Padula"
 date: "2025-03-13"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -25,6 +27,8 @@ library(ggpubr)
 library(ggdist)
 library(patchwork)
 library(ggeffects)
+library(performance)
+library(ggeffects)   
 ```
 
 ## Load data
@@ -34,69 +38,69 @@ library(ggeffects)
 #Loading data
 breed <- read.csv("paired_SMI.csv")
 
-## Scaling elevation variable for each species
-breedMOCH <- breed %>%
-  filter(Species == "MOCH") %>%
-  mutate(scale_ele = scale(Elevation))
-
-breedBCCH <- breed %>%
-  filter(Species == "BCCH") %>%
-  filter(Elevation < 2000) %>%
-  mutate(scale_ele = scale(Elevation))
-
-breed <- rbind(breedMOCH, breedBCCH)
+#Split by species
+bcch_data <- filter(breed, Species == "BCCH")
+moch_data <- filter(breed, Species == "MOCH")
 
 #What is the sample size and mean wing difference in...
 
 #MOCH?
-nrow(breedMOCH)
+nrow(moch_data)
 
-mean(breedMOCH$Wing_Difference)
+mean(moch_data$Wing_Difference)
 
 
 #BCCH?
-nrow(breedBCCH)
+nrow(bcch_data)
 
-mean(breedBCCH$Wing_Difference)
+mean(bcch_data$Wing_Difference)
 
 ```
 
 ## Breeding Success Analysis -- Numerical wing difference variable
 ```{r}
 #first egg, removing blank values
-breed.fe <- breed %>% filter(!is.na(First.Egg))
-sum(breed.fe$Species == "MOCH") 
-sum(breed.fe$Species == "BCCH")
+bcch_breed.fe <- bcch_data %>% filter(!is.na(First.Egg))
+moch_breed.fe <- moch_data %>% filter(!is.na(First.Egg))
+nrow(bcch_breed.fe)
+nrow(moch_breed.fe)
 
 #clutch size, removing blank values
-breed.cs <- breed %>% filter(!is.na(Egg_Number))
-sum(breed.cs$Species == "MOCH") 
-sum(breed.cs$Species == "BCCH")
+bcch_breed.cs <- bcch_data %>% filter(!is.na(Egg_Number))
+moch_breed.cs <- moch_data %>% filter(!is.na(Egg_Number))
+nrow(bcch_breed.cs)
+nrow(moch_breed.cs)
 
 #brood size, removing blank values
-breed.bs <- breed %>% filter(!is.na(Nestling_Number))
-sum(breed.bs$Species == "MOCH") 
-sum(breed.bs$Species == "BCCH")
+bcch_breed.bs <- bcch_data %>% filter(!is.na(Nestling_Number))
+moch_breed.bs <- moch_data %>% filter(!is.na(Nestling_Number))
+nrow(bcch_breed.bs)
+nrow(moch_breed.bs)
 
 #nestling size, removing blank values
-breed.mm <- breed %>% filter(!is.na(Avg_Nestling_Weight))
-sum(breed.mm$Species == "MOCH") 
-sum(breed.mm$Species == "BCCH")
+bcch_breed.mm <- bcch_data %>% filter(!is.na(Avg_Nestling_Weight))
+moch_breed.mm <- moch_data %>% filter(!is.na(Avg_Nestling_Weight))
+nrow(bcch_breed.mm)
+nrow(moch_breed.mm)
 
 #Female SMI, removing blank values
-breed.fs <- breed %>% filter(!is.na(Female_SMI))
-sum(breed.fs$Species == "MOCH") 
-sum(breed.fs$Species == "BCCH")
+bcch_breed.fs <- bcch_data %>% filter(!is.na(Female_SMI))
+moch_breed.fs <- moch_data %>% filter(!is.na(Female_SMI))
+nrow(bcch_breed.fs)
+nrow(moch_breed.fs)
 
 #Male SMI, removing blank values
-breed.ms <- breed %>% filter(!is.na(Male_SMI))
-sum(breed.ms$Species == "MOCH") 
-sum(breed.ms$Species == "BCCH")
+bcch_breed.ms <- bcch_data %>% filter(!is.na(Male_SMI))
+moch_breed.ms <- moch_data %>% filter(!is.na(Male_SMI))
+nrow(bcch_breed.ms)
+nrow(moch_breed.ms)
 
 #Provisioning
 breed.p <- breed %>% filter(!is.na(Provisioning))
-sum(breed.p$Species == "MOCH") 
-sum(breed.p$Species == "BCCH")
+bcch_breed.p <- bcch_data %>% filter(!is.na(Provisioning))
+moch_breed.p <- moch_data %>% filter(!is.na(Provisioning))
+nrow(bcch_breed.p)
+nrow(moch_breed.p)
 
 
 ```
@@ -104,33 +108,43 @@ sum(breed.p$Species == "BCCH")
 ## Modeling date of first egg
 
 ```{r}
-# Add constant so log is defined (if needed)
-min_FE <- min(breed.fe$First.Egg, na.rm = TRUE)
-breed.fe$First.Egg_log <- log(breed.fe$First.Egg - min_FE + 1)
+## Model first egg in BCCH ##
 
-# Center the log-transformed First.Egg within Year × Elevation groups
-breed.fe$First.Egg_log_Centered <- ave(breed.fe$First.Egg_log, 
-                                       interaction(breed.fe$Year, breed.fe$scale_ele), 
-                                       FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+feB1 <- lmer(First.Egg ~ Wing_Difference + Elevation + (1|Year), data = bcch_breed.fe)
 
-## Model first egg ######
-fe1 <- lmer(First.Egg_log_Centered ~ Wing_Difference*Species + scale_ele + (1|Year), data = breed.fe)
-fe2 <- lmer(First.Egg_log_Centered ~ Species + scale_ele + (1|Year), data = breed.fe)
+summary(feB1)
+r2(feB1)
+check_model(feB1)
+simres <-simulateResiduals(feB1)
+plot(simres)
 
-anova(fe2, fe1) #wing difference doesn't significantly improve model fit
 
-#Check residuals
-fe1r = simulateResiduals(fe1)
-plot(fe1r)
-#quantile deviation
+#Testing whether Wing_Difference improves model fit
+feB_null <- lmer(First.Egg ~ Elevation + (1|Year), data = bcch_breed.fe)
 
-#wing diff doesnt improve fit and the model deviates, so we can confidently say that wing difference within pairs doesn't impact date of first egg.
+anova(feB_null, feB1, test = "Chisq") ## wing diff does not improve model fit
 
-summary(fe1) # species significant
+## Model first egg in MOCH ##
 
-mochFEp <- 0.675
+feM1 <- lmer(First.Egg ~ Wing_Difference + Elevation + (1|Year), data = moch_breed.fe)
 
-bcchFEp <- 0.628
+summary(feM1)
+r2(feM1)
+check_model(feM1)
+simres <-simulateResiduals(feM1)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+feM_null <- lmer(First.Egg ~ Elevation + (1|Year), data = moch_breed.fe)
+
+anova(feM_null, feM1, test = "Chisq") ## wing diff does not improve model fit
+
+bcchFEp <- 0.699
+
+mochFEp <- 0.441
+
+
 
 
 ```
@@ -138,148 +152,245 @@ bcchFEp <- 0.628
 ## Modeling clutch size
 
 ```{r}
+## Model clutch size in BCCH ##
+
+csB1 <- glmmTMB(Egg_Number ~ Wing_Difference + Elevation, data = bcch_breed.cs, family = compois)
+summary(csB1)
+
+simres_bin <- simulateResiduals(csB1)
+plot(simres_bin) 
+
+#Testing whether Wing_Difference improves model fit
+csB_null <- glmmTMB(Egg_Number ~ Elevation, data = bcch_breed.cs, family = compois)
+
+anova(csB_null, csB1, test = "Chisq") ## wing diff does not improve model fit
+
+## Model clutch size in MOCH ##
+
+csM1 <- glmmTMB(Egg_Number ~ Wing_Difference + Elevation, data = moch_breed.cs, family = compois)
 
 
+summary(csM1)
+simres_bin <- simulateResiduals(csM1)
+plot(simres_bin)
+
+#Testing whether Wing_Difference improves model fit
+csM_null <- glmmTMB(Egg_Number ~ Elevation, data = moch_breed.cs, family = compois)
+
+anova(csM_null, csM1, test = "Chisq") ## wing diff does not improve model fit
 
 
-cs1 <- glmmTMB(Egg_Number ~ Wing_Difference*Species, data =breed.cs,family = "genpois")
-cs2 <- glmmTMB(Egg_Number ~ Species, data=breed.cs, family="genpois") 
+bcchCSp <- 0.55
 
-anova(cs1,cs2) # wing difference significantly improves model fit
-
-#Check residuals
-cs1r = simulateResiduals(cs1)
-plot(cs1r)
-#outliers significant on q-q plot
-
-res <- cs1r$scaledResiduals
-breed.cs$resid <- res
-breed.cs[abs(res) > 2.5, ]  # Inspect top outliers
-
-#no evidence of true outliers, proceed with this model
-
-summary(cs1) #species significant
-
-mochCSp <- 0.101
-
-bcchCSp <- 0.795
-
-
+mochCSp <- 0.016
 ```
 
 ## Modeling brood size
 
 ```{r}
-bs1 <- glmmTMB(Nestling_Number ~ Wing_Difference*Species + (1|Year), data = breed.bs, family="genpois")
-bs2 <- glmmTMB(Nestling_Number ~ Species + (1|Year), data = breed.bs, family = "genpois") #got error when including (1|Year) and variance of the random effect was very low
+## Model brood size in BCCH ##
 
-anova(bs1,bs2) #wing difference significantly improves model fit
+bsB1 <- glmmTMB(Nestling_Number ~ Wing_Difference + Elevation, data = bcch_breed.bs, family = compois)
 
-#check residuals
-bs1r = simulateResiduals(bs1)
-plot(bs1r)
-#look good
+summary(bsB1)
 
-#Results
-summary(bs1) #species and wing_difference*species significant
+simres_bin <- simulateResiduals(bsB1)
+plot(simres_bin) 
 
-mochBSp <- 0.00118
+#Testing whether Wing_Difference improves model fit
+bsB_null <- glmmTMB(Nestling_Number ~ Elevation, data = bcch_breed.bs, family = compois)
 
-bcchBSp <- 0.353
+anova(bsB_null, bsB1, test = "Chisq") ## wing diff does not improve model fit
 
+## Model brood size in MOCH ##
+
+bsM1 <- glmmTMB(Nestling_Number ~ Wing_Difference + Elevation, data = moch_breed.bs, family = compois)
+
+
+summary(bsM1)
+simres_bin <- simulateResiduals(bsM1)
+plot(simres_bin)
+
+#Testing whether Wing_Difference improves model fit
+bsM_null <- glmmTMB(Nestling_Number ~ Elevation, data = moch_breed.bs, family = compois)
+
+anova(bsM_null, bsM1, test = "Chisq") ## wing diff does not improve model fit
+
+
+
+bcchBSp <- 0.32
+mochBSp <- 0.00073
 
 ```
 
 ## Modeling average nestling mass
 
 ```{r}
-##Model nestling mass #####
-mm1 <- lmer(Avg_Nestling_Weight ~ Wing_Difference*Species + Nestling_Number + (1|Year), data = breed.mm)
-mm2 <- lmer(Avg_Nestling_Weight ~ Species + Nestling_Number + (1|Year), data = breed.mm)
+## Model avg nestling mass in BCCH ##
 
-anova(mm1, mm2) # wing difference significantly improves model fit
+mmB1 <- lmer(Avg_Nestling_Weight ~ Wing_Difference + Elevation + (1|Year), data = bcch_breed.mm)
 
-#check residuals
-mm1r = simulateResiduals(mm1) 
-plot(mm1r)
-#some deviation
+summary(mmB1)
+r2(mmB1)
+check_model(mmB1)
+simres <-simulateResiduals(mmB1)
+plot(simres)
 
-#results
-summary(mm1) #wing_difference*species significant
 
-mochMMp <- 0.0204
+#Testing whether Wing_Difference improves model fit
+mmB_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = bcch_breed.mm)
 
-bcchMMp <- 0.7428
+anova(mmB_null, mmB1, test = "Chisq") ## wing diff does not improve model fit
+
+## Model avg nestling mass in MOCH ##
+
+mmM1 <- lmer(Avg_Nestling_Weight ~ Wing_Difference + Elevation + (1|Year), data = moch_breed.mm)
+
+summary(mmM1)
+r2(mmM1)
+check_model(mmM1)
+simres <-simulateResiduals(mmM1)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+mmM_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = moch_breed.mm)
+
+anova(mmM_null, mmM1, test = "Chisq") ## wing diff does not improve model fit
+
+
+
+bcchMMp <- 0.641
+mochMMp <- 0.0018
 ```
 
 ## Modeling Female SMI
 
 ```{r}
-fs1 <- lmer(Female_SMI ~ Wing_Difference*Species + (1|Year), data =  breed.fs)
-fs2 <- lmer(Female_SMI ~ Species + (1|Year), data = breed.fs)
+## Model female body condition in BCCH ##
 
-anova(fs1,fs2) # wing difference doesn't improve model fit
+fsB1 <- lm(Female_SMI ~ Wing_Difference + Elevation, data = bcch_breed.fs)
 
-#check residuals
-fs1r = simulateResiduals(fs1)
-plot(fs1r)
-#look okay
+summary(fsB1)
+r2(fsB1)
+check_model(fsB1)
+simres <-simulateResiduals(fsB1)
+plot(simres)
 
-#results
-summary(fs1) #species*elevation significant, elevation almost significant
 
-mochFSp <- 0.990
+#Testing whether Wing_Difference improves model fit
+fsB_null <- lm(Female_SMI ~ Elevation, data = bcch_breed.fs)
 
-bcchFSp <- 0.566
+anova(fsB_null, fsB1, test = "Chisq") ## wing diff does not improve model fit
 
+## Model female body condition in MOCH ##
+
+fsM1 <- lm(Female_SMI ~ Wing_Difference + Elevation, data = moch_breed.fs)
+
+summary(fsM1)
+r2(fsM1)
+check_model(fsM1)
+simres <-simulateResiduals(fsM1)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+fsM_null <- lm(Female_SMI ~ Elevation, data = moch_breed.fs)
+
+anova(fsM_null, fsM1, test = "Chisq") ## wing diff does not improve model fit
+
+bcchFSp <- 0.664
+
+mochFSp <- 0.56989
 ```
 
 ## Modeling male SMI
 
 ```{r}
-ms1 <- lmer(Male_SMI ~ Wing_Difference*Species + (1|Year), data =  breed.ms)
-ms2 <- lmer(Male_SMI ~ Species + (1|Year), data = breed.ms)
+## Model male body condition in BCCH ##
 
-anova(ms1,ms2) #wing difference significantly improves model fit
+msB1 <- lm(Male_SMI ~ Wing_Difference + Elevation, data = bcch_breed.ms)
 
-#check residuals
-ms1r = simulateResiduals(ms1)
-plot(ms1r)
-#look good
+summary(msB1)
+r2(msB1)
+check_model(msB1)
+simres <-simulateResiduals(msB1)
+plot(simres)
 
-#results
-summary(ms1) #wing_difference significant
 
-mochMSp <- 0.14301
+#Testing whether Wing_Difference improves model fit
+msB_null <- lm(Male_SMI ~ Elevation, data = bcch_breed.ms)
 
-bcchMSp <- 0.00593
+anova(msB_null, msB1, test = "Chisq") ## wing diff does not improve model fit
+
+## Model male body condition in MOCH ##
+
+msM1 <- lm(Male_SMI ~ Wing_Difference + Elevation, data = moch_breed.ms)
+
+summary(msM1)
+r2(msM1)
+check_model(msM1)
+simres <-simulateResiduals(msM1)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+msM_null <- lm(Male_SMI ~ Elevation, data = moch_breed.ms)
+
+anova(msM_null, msM1, test = "Chisq") ## wing diff does not improve model fit
+
+
+bcchMSp <- 0.009
+mochMSp <- 0.557
+
+
 ```
 
 ## Modeling provisioning rate
 
 ```{r}
-p1 <- lmer(Provisioning ~ Wing_Difference*Species + (1|Year), data =  breed.p)
-p2 <- lmer(Provisioning ~ Species + (1|Year), data = breed.p)
+## Model provisioning in BCCH ##
 
-anova(p1,p2) #wing difference doesn't improve model fit
+pB1 <- lm(Provisioning ~ Wing_Difference + Elevation, data = bcch_breed.p)
 
-#check residuals
-p1r = simulateResiduals(p1)
-plot(p1r)
-#quantile deviations
+summary(pB1)
+r2(pB1)
+check_model(pB1)
+simres <-simulateResiduals(pB1)
+plot(simres)
 
-#results
-summary(p1) #nothing significant
 
-mochPp <- 0.787
+#Testing whether Wing_Difference improves model fit
+pB_null <- lm(Provisioning ~ Elevation, data = bcch_breed.p)
 
-bcchPp <- 0.892
+anova(pB_null, pB1, test = "Chisq") ## wing diff does not improve model fit
+
+## Model male body condition in MOCH ##
+
+pM1 <- lm(Provisioning ~ Wing_Difference + Elevation, data = moch_breed.p)
+
+summary(pM1)
+r2(pM1)
+check_model(pM1)
+simres <-simulateResiduals(pM1)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+pM_null <- lm(Provisioning ~ Elevation, data = moch_breed.p)
+
+anova(msM_null, msM1, test = "Chisq") ## wing diff does not improve model fit
+
+bcchPp <- 0.999
+mochPp <- 0.62
+
+
 ```
 
 Adjust the p-values to account for multiple comparisons
 
 ```{r}
-p_values <- c(mochFEp, bcchFEp, mochCSp, bcchCSp, mochBSp, bcchBSp, mochMMp, bcchMMp, mochFSp, bcchFSp, mochMSp, bcchMSp, mochPp, bcchPp)
+p_values <- c(bcchFEp, mochFEp, bcchCSp, mochCSp, bcchBSp, mochBSp, bcchMMp, mochMMp, bcchFSp, mochFSp, bcchMSp, mochMSp, bcchPp, mochPp)
 
 p_adjusted <- p.adjust(p_values, method = "BH")
 
@@ -292,143 +403,107 @@ Visualizing wing difference (numeric) predicting reproductive success variables.
 
 ```{r}
 
-# Use your fitted model with Wing_Difference
-breed.fe$Species <- as.factor(breed.fe$Species)
 
-fe1 <- lmer(First.Egg_log_Centered ~ Wing_Difference * Species + scale_ele + (1|Year), data = breed.fe)
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_a <- ggpredict(fe1, terms = c("Wing_Difference", "Species"))
-
-# Plot
-a <- ggplot(preds_a, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "", y = "Pred. Scaled Date of First Egg", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 6))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
-
-# Use your fitted model with Wing_Difference
-breed.cs$Species <- as.factor(breed.cs$Species)
-
-cs1 <- glmmTMB(Egg_Number ~ Wing_Difference*Species, data =breed.cs,family = "genpois")
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_b <- ggpredict(cs1, terms = c("Wing_Difference", "Species"))
+sp_cols <- c("MOCH" = "#cc79a7", "BCCH" = "#0072b2")
 
 
-b <- ggplot(preds_b, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "", y = "Pred. Clutch Size", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 6))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
+pred_plot_dual <- function(model_bcch, model_moch,
+                           df_bcch, df_moch,
+                           y_col, ylab) {
+  # predictions
+  pb <- ggpredict(model_bcch, terms = "Wing_Difference")
+  pm <- ggpredict(model_moch, terms = "Wing_Difference")
+  pb$Species <- "BCCH"
+  pm$Species <- "MOCH"
+  preds <- bind_rows(pb, pm)
 
-# Use your fitted model with Wing_Difference
-breed.bs$Species <- as.factor(breed.bs$Species)
+  # raw data 
+  raw <- bind_rows(
+    df_bcch %>% mutate(Species = "BCCH"),
+    df_moch %>% mutate(Species = "MOCH")
+  )
 
-bs1 <- glmmTMB(Nestling_Number ~ Wing_Difference*Species, data =breed.bs,family = "genpois")
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_c <- ggpredict(bs1, terms = c("Wing_Difference", "Species"))
-
-
-c <- ggplot(preds_c, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "", y = "Pred. Brood Size", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 6))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
-
-breed.mm$Species <- as.factor(breed.mm$Species)
-
-mm1 <- lmer(Avg_Nestling_Weight ~ Wing_Difference*Species + Nestling_Number + (1|Year), data = breed.mm)
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_d <- ggpredict(bs1, terms = c("Wing_Difference", "Species"))
-
-d <- ggplot(preds_d, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "", y = "Pred. Avg. Nestling Mass (g)", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 5))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
-
-breed.fs$Species <- as.factor(breed.fs$Species)
-
-fs1 <- lmer(Female_SMI ~ Wing_Difference*Species + (1|Year), data = breed.fs)
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_e <- ggpredict(fs1, terms = c("Wing_Difference", "Species"))
-
-e <- ggplot(preds_e, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "", y = "Pred. Female Body Condition", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 5))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
-
-breed.ms$Species <- as.factor(breed.ms$Species)
-
-ms1 <- lmer(Male_SMI ~ Wing_Difference*Species + (1|Year), data = breed.ms)
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_f <- ggpredict(ms1, terms = c("Wing_Difference", "Species"))
+  ggplot(preds, aes(x = x, y = predicted, color = Species, fill = Species)) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.18, color = NA) +
+    geom_line(linewidth = 0.9) +
+    geom_point(data = raw,
+               aes(x = Wing_Difference, y = .data[[y_col]], color = Species),
+               inherit.aes = FALSE, alpha = 0.35, size = 0.8) +
+    scale_color_manual(values = sp_cols) +
+    scale_fill_manual(values = sp_cols) +
+    labs(x = "Wing difference (mm)", y = ylab, color = "Species") +
+    theme_minimal(base_size = 9) +
+    theme(legend.position = "bottom")
+}
 
 
-f <- ggplot(preds_f, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "Wing Difference (mm)", y = "Pred. Male Body Condition", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 5))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
-
-breed.p$Species <- as.factor(breed.p$Species)
-
-p1 <- lmer(Provisioning ~ Wing_Difference*Species + (1|Year), data = breed.p)
-
-# Generate predicted values over range of Wing_Difference for each species
-preds_g <- ggpredict(p1, terms = c("Wing_Difference", "Species"))
+p_fe <- pred_plot_dual(
+  feB1, feM1,
+  bcch_breed.fe %>% filter(!is.na(Wing_Difference), !is.na(First.Egg)),
+  moch_breed.fe %>% filter(!is.na(Wing_Difference), !is.na(First.Egg)),
+  y_col = "First.Egg",
+  ylab = "Pred. date of first egg"
+)
 
 
-g <- ggplot(preds_g, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 0.8) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(x = "Wing Difference (mm)", y = "Pred. Provisioning Rate", color = "Species", fill = "Species") +
-    scale_color_manual(values = c("MOCH" = "#cc79a7", "BCCH" = "#0072b2"))+
-  theme_minimal()+
-    theme(legend.position = "none")+
-    theme(axis.title.y = element_text(size = 5))+
-    theme(axis.text.y = element_text(size = 5))+
-    theme(axis.text.x = element_text(size = 5))
+p_cs <- pred_plot_dual(
+  csB1, csM1,
+  bcch_breed.cs %>% filter(!is.na(Wing_Difference), !is.na(Egg_Number)),
+  moch_breed.cs %>% filter(!is.na(Wing_Difference), !is.na(Egg_Number)),
+  y_col = "Egg_Number",
+  ylab = "Pred. clutch size"
+)
 
-allLine <- (a + b + c)/(d + e + f + g)
 
-ggsave("wingdiffRepVarPlot.png", plot = allLine, width = 6, height = 4, dpi = 300)
+p_bs <- pred_plot_dual(
+  bsB1, bsM1,
+  bcch_breed.bs %>% filter(!is.na(Wing_Difference), !is.na(Nestling_Number)),
+  moch_breed.bs %>% filter(!is.na(Wing_Difference), !is.na(Nestling_Number)),
+  y_col = "Nestling_Number",
+  ylab = "Pred. brood size"
+)
+
+
+p_mm <- pred_plot_dual(
+  mmB1, mmM1,
+  bcch_breed.mm %>% filter(!is.na(Wing_Difference), !is.na(Avg_Nestling_Weight)),
+  moch_breed.mm %>% filter(!is.na(Wing_Difference), !is.na(Avg_Nestling_Weight)),
+  y_col = "Avg_Nestling_Weight",
+  ylab = "Pred. avg. nestling mass (g)"
+)
+
+
+p_fs <- pred_plot_dual(
+  fsB1, fsM1,
+  bcch_breed.fs %>% filter(!is.na(Wing_Difference), !is.na(Female_SMI)),
+  moch_breed.fs %>% filter(!is.na(Wing_Difference), !is.na(Female_SMI)),
+  y_col = "Female_SMI",
+  ylab = "Pred. female SMI"
+)
+
+p_ms <- pred_plot_dual(
+  msB1, msM1,
+  bcch_breed.ms %>% filter(!is.na(Wing_Difference), !is.na(Male_SMI)),
+  moch_breed.ms %>% filter(!is.na(Wing_Difference), !is.na(Male_SMI)),
+  y_col = "Male_SMI",
+  ylab = "Pred. male SMI"
+)
+
+
+p_pr <- pred_plot_dual(
+  pB1, pM1,
+  bcch_breed.p %>% filter(!is.na(Wing_Difference), !is.na(Provisioning)),
+  moch_breed.p %>% filter(!is.na(Wing_Difference), !is.na(Provisioning)),
+  y_col = "Provisioning",
+  ylab = "Pred. provisioning rate"
+)
+
+
+allLine <- (p_fe + p_cs + p_bs) / (p_mm + p_fs + p_ms + p_pr) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+ggsave("wingdiffRepVarPlot.png", plot = allLine, width = 8.5, height = 6.0, dpi = 300)
 
 ```
 
@@ -496,40 +571,36 @@ ggplot(breed, aes(x = Female.Wing.Chord, y = Male.Wing.Chord, color = Species)) 
 head(breed)
 breedCat <-breed[breed$Wing_Difference_Category %in% c("Much", "Slightly"), ]
 
+breedCat_moch <- subset(breedCat, Species == "MOCH")
+breedCat_bcch <- subset(breedCat, Species == "BCCH")
+
 #first egg, removing blank values
-breedCat.fe <- breedCat %>% filter(!is.na(First.Egg))
-sum(breedCat.fe$Species == "MOCH") 
-sum(breedCat.fe$Species == "BCCH")
+breedCat_bcch.fe <- breedCat_bcch %>% filter(!is.na(First.Egg))
+breedCat_moch.fe <- breedCat_moch %>% filter(!is.na(First.Egg))
 
 #clutch size, removing blank values
-breedCat.cs <- breedCat %>% filter(!is.na(Egg_Number))
-sum(breedCat.cs$Species == "MOCH") 
-sum(breedCat.cs$Species == "BCCH")
-
+breedCat_bcch.cs <- breedCat_bcch %>% filter(!is.na(Egg_Number))
+breedCat_moch.cs <- breedCat_moch %>% filter(!is.na(Egg_Number))
+    
 #brood size, removing blank values
-breedCat.bs <- breedCat %>% filter(!is.na(Nestling_Number))
-sum(breedCat.bs$Species == "MOCH") 
-sum(breedCat.bs$Species == "BCCH")
+breedCat_bcch.bs <- breedCat_bcch %>% filter(!is.na(Nestling_Number))
+breedCat_moch.bs <- breedCat_moch %>% filter(!is.na(Nestling_Number))
 
 #nestling size, removing blank values
-breedCat.mm <- breedCat %>% filter(!is.na(Avg_Nestling_Weight))
-sum(breedCat.mm$Species == "MOCH") 
-sum(breedCat.mm$Species == "BCCH")
+breedCat_bcch.mm <- breedCat_bcch %>% filter(!is.na(Avg_Nestling_Weight))
+breedCat_moch.mm <- breedCat_moch %>% filter(!is.na(Avg_Nestling_Weight))
 
 #Female SMI, removing blank values
-breedCat.fs <- breedCat %>% filter(!is.na(Female_SMI))
-sum(breedCat.fs$Species == "MOCH") 
-sum(breedCat.fs$Species == "BCCH")
+breedCat_bcch.fs <- breedCat_bcch %>% filter(!is.na(Female_SMI))
+breedCat_moch.fs <- breedCat_moch %>% filter(!is.na(Female_SMI))
 
 #Male SMI, removing blank values
-breedCat.ms <- breedCat %>% filter(!is.na(Male_SMI))
-sum(breedCat.ms$Species == "MOCH") 
-sum(breedCat.ms$Species == "BCCH")
+breedCat_bcch.ms <- breedCat_bcch %>% filter(!is.na(Male_SMI))
+breedCat_moch.ms <- breedCat_moch %>% filter(!is.na(Male_SMI))
 
 #Provisioning
-breedCat.p <- breedCat %>% filter(!is.na(Provisioning))
-sum(breedCat.p$Species == "MOCH") 
-sum(breedCat.p$Species == "BCCH")
+breedCat_bcch.p <- breedCat_bcch %>% filter(!is.na(Provisioning))
+breedCat_moch.p <- breedCat_moch %>% filter(!is.na(Provisioning))
 
 ```
 
@@ -537,27 +608,43 @@ sum(breedCat.p$Species == "BCCH")
 ## Modeling date of first egg
 
 ```{r}
-# Ensure elevation is numeric
-breedCat.fe$scale_ele <- as.numeric(breedCat.fe$scale_ele)
+## Model first egg in BCCH ##
 
-# Center First.Egg within each Year × Elevation group
-breedCat.fe$First.Egg_Centered <- ave(breedCat.fe$First.Egg,
-                                      interaction(breedCat.fe$Year, breedCat.fe$scale_ele),
-                                      FUN = function(x) scale(x, center = TRUE, scale = FALSE))
+feBc <- lmer(First.Egg ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.fe)
 
-fec1 <- lmer(First.Egg_Centered ~ Wing_Difference_Category*Species + scale_ele + (1|Year), data = breedCat.fe)
-fec2 <- lmer(First.Egg_Centered ~ Species + scale_ele + (1|Year), data = breedCat.fe)
+summary(feBc)
+r2(feBc)
+check_model(feBc)
+simres <-simulateResiduals(feBc)
+plot(simres)
 
-anova(fec1,fec2) #wing difference doesnt improve model fit
 
-#Check residuals
-fec1r = simulateResiduals(fec1)
-plot(fec1r)
-#strong deviation
+#Testing whether Wing_Difference improves model fit
+feBc_null <- lmer(First.Egg ~ Elevation + (1|Year), data = breedCat_bcch.fe)
 
-summary(fec1)
-catPFEB <-0.79
-catPFEM <-0.76
+anova(feBc_null, feBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model first egg in MOCH ##
+
+feMc <- lmer(First.Egg ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.fe)
+
+summary(feMc)
+r2(feMc)
+check_model(feMc)
+simres <-simulateResiduals(feMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+feMc_null <- lmer(First.Egg ~ Elevation + (1|Year), data = breedCat_moch.fe)
+
+anova(feMc_null, feMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchFEp <- 0.54
+
+mochFEp <- 0.33
+
+
 
 ```
 
@@ -565,62 +652,123 @@ catPFEM <-0.76
 ## Modeling clutch size
 
 ```{r}
-cs1 <- glmmTMB(Egg_Number ~ Wing_Difference_Category*Species, data =breedCat.cs,family = "genpois")
-cs2 <- glmmTMB(Egg_Number ~ Species, data=breedCat.cs, family="genpois") #got error when including (1|Year) and variance of the random effect was very low
+## Model clutch size in BCCH ##
 
-anova(cs1,cs2) # wing difference does not improve model fit
+csBc <- lmer(Egg_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.cs)
 
-#Check residuals
-cs1r = simulateResiduals(cs1)
-plot(cs1r)
-#look okay
+summary(csBc)
+r2(csBc)
+check_model(csBc)
+simres <-simulateResiduals(csBc)
+plot(simres)
 
-summary(cs1)
 
-catPBSB <- 0.206
-catPBSM <-0.568
+#Testing whether Wing_Difference improves model fit
+csBc_null <- lmer(Egg_Number ~ Elevation + (1|Year), data = breedCat_bcch.cs)
+
+anova(csBc_null, csBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model clutch size in MOCH ##
+
+csMc <- lmer(Egg_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.cs)
+
+summary(csMc)
+r2(csMc)
+check_model(csMc)
+simres <-simulateResiduals(csMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+csMc_null <- lmer(Egg_Number ~ Elevation + (1|Year), data = breedCat_moch.cs)
+
+anova(csMc_null, csMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchCSp <- 0.20
+
+mochCSp <- 0.37
 
 ```
 
 ## Modeling brood size
 
 ```{r}
-bs1 <- glmmTMB(Nestling_Number ~ Wing_Difference_Category*Species, data = breedCat.bs, family="genpois")
-bs2 <- glmmTMB(Nestling_Number ~ Species, data = breedCat.bs, family = "genpois") #got error when including (1|Year) and variance of the random effect was very low
+## Model brood size in BCCH ##
 
-anova(bs1,bs2) #wing difference doesnt improve model fit
+bsBc <- lmer(Nestling_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.bs)
 
-#check residuals
-bs1r = simulateResiduals(bs1)
-plot(bs1r)
-#look ok
+summary(bsBc)
+r2(bsBc)
+check_model(bsBc)
+simres <-simulateResiduals(bsBc)
+plot(simres)
 
-#Results
-summary(bs1)
 
-catPNNM <- 0.486
-catPNNB <- 0.915
+#Testing whether Wing_Difference improves model fit
+bsBc_null <- lmer(Nestling_Number ~ Elevation + (1|Year), data = breedCat_bcch.bs)
+
+anova(bsBc_null, bsBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model brood size in MOCH ##
+
+bsMc <- lmer(Nestling_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.bs)
+
+summary(bsMc)
+r2(bsMc)
+check_model(bsMc)
+simres <-simulateResiduals(bsMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+bsMc_null <- lmer(Nestling_Number ~ Elevation + (1|Year), data = breedCat_moch.bs)
+
+anova(bsMc_null, bsMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchBSp <- 0.94
+
+mochBSp <- 0.14
 
 ```
 
 ## Modeling average nestling mass
 
 ```{r}
-mm3 <- lmer(Avg_Nestling_Weight ~ Wing_Difference_Category*Species + (1|Year), data = breedCat.mm)
-mm4 <- lmer(Avg_Nestling_Weight ~ Species + (1|Year), data = breedCat.mm)
+## Model average nestling mass in BCCH ##
 
-anova(mm3, mm4) #wing difference significantly improves model fit
+mmBc <- lmer(Avg_Nestling_Weight ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.mm)
 
-#check residuals
-mm3r = simulateResiduals(mm3)
-plot(mm3r)
-#looks good
+summary(mmBc)
+r2(mmBc)
+check_model(mmBc)
+simres <-simulateResiduals(mmBc)
+plot(simres)
 
-#results
-summary(mm3)
 
-catPMMM <- 0.0259
-catPMMB <- 0.715
+#Testing whether Wing_Difference improves model fit
+mmBc_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = breedCat_bcch.mm)
+
+anova(mmBc_null, mmBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model average nestling mass in MOCH ##
+
+mmMc <- lmer(Avg_Nestling_Weight ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.mm)
+
+summary(mmMc)
+r2(mmMc)
+check_model(mmMc)
+simres <-simulateResiduals(mmMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+mmMc_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = breedCat_moch.mm)
+
+anova(mmMc_null, mmMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchMMp <- 0.89
+
+mochMMp <- 0.009
 
 ```
 
@@ -628,69 +776,129 @@ catPMMB <- 0.715
 ## Modeling female SMI
 
 ```{r}
-fs1 <- lmer(Female_SMI ~ Wing_Difference_Category*Species + (1|Year), data =  breedCat.fs)
-fs2 <- lmer(Female_SMI ~ Species + (1|Year), data = breedCat.fs)
+## Model female SMI in BCCH ##
 
-anova(fs1,fs2) #wing difference doesnt improve model fit
+fsBc <- lmer(Female_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.fs)
 
-#check residuals
-fs1r = simulateResiduals(fs1)
-plot(fs1r)
-#look okay
+summary(fsBc)
+r2(fsBc)
+check_model(fsBc)
+simres <-simulateResiduals(fsBc)
+plot(simres)
 
-#results
-summary(fs1) 
 
-catPFSM <- 0.6
-catPFSB <- 0.708
+#Testing whether Wing_Difference improves model fit
+fsBc_null <- lmer(Female_SMI ~ Elevation + (1|Year), data = breedCat_bcch.fs)
+
+anova(fsBc_null, fsBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model female SMI in MOCH ##
+
+fsMc <- lmer(Female_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.fs)
+
+summary(fsMc)
+r2(fsMc)
+check_model(fsMc)
+simres <-simulateResiduals(fsMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+fsMc_null <- lmer(Female_SMI ~ Elevation + (1|Year), data = breedCat_moch.fs)
+
+anova(fsMc_null, fsMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchFSp <- 0.66
+
+mochFSp <- 0.83
 
 ```
 
 
 ## Modeling male SMI
 ```{r}
-ms1 <- lmer(Male_SMI ~ Wing_Difference_Category*Species + (1|Year), data =  breedCat.ms)
-ms2 <- lmer(Male_SMI ~ Species + (1|Year), data = breedCat.ms)
+## Model male SMI in BCCH ##
 
-anova(ms1,ms2) #wing difference doesnt improve model fit
+msBc <- lmer(Male_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.ms)
 
-#check residuals
-ms1r = simulateResiduals(ms1)
-plot(ms1r)
-#look good
+summary(msBc)
+r2(msBc)
+check_model(msBc)
+simres <-simulateResiduals(msBc)
+plot(simres)
 
-#results
-summary(ms1) #wing_difference BCCH almost significant
 
-catPMSM <- 0.3122
-catPMSB <- 0.0765
+#Testing whether Wing_Difference improves model fit
+msBc_null <- lmer(Male_SMI ~ Elevation + (1|Year), data = breedCat_bcch.ms)
+
+anova(msBc_null, msBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model male SMI in MOCH ##
+
+msMc <- lmer(Male_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.ms)
+
+summary(msMc)
+r2(msMc)
+check_model(msMc)
+simres <-simulateResiduals(msMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+msMc_null <- lmer(Male_SMI ~ Elevation + (1|Year), data = breedCat_moch.ms)
+
+anova(msMc_null, msMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchMSp <- 0.08
+
+mochMSp <- 0.49
 
 ```
 
 ## Modeling provisioning rate
 
 ```{r}
-p1 <- lmer(Provisioning ~ Wing_Difference_Category*Species + (1|Year), data =  breedCat.p)
-p2 <- lmer(Provisioning ~ Species + (1|Year), data = breedCat.p)
+## Model provisioning in BCCH ##
 
-anova(p1,p2) #wing difference doesnt improve model fit
+pBc <- lmer(Provisioning ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.p)
 
-#check residuals
-p1r = simulateResiduals(p1)
-plot(p1r)
-#quantile deviations
+summary(pBc)
+r2(pBc)
+check_model(pBc)
+simres <-simulateResiduals(pBc)
+plot(simres)
 
-#results
-summary(p1)
 
-catPPM <- 0.469
-catPPB <- 0.536
+#Testing whether Wing_Difference improves model fit
+pBc_null <- lmer(Provisioning ~ Elevation + (1|Year), data = breedCat_bcch.p)
+
+anova(pBc_null, pBc, test = "Chisq") ## wing diff does not improve model fit
+
+## Model Provisioning in MOCH ##
+
+pMc <- lmer(Provisioning ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.p)
+
+summary(pMc)
+r2(pMc)
+check_model(pMc)
+simres <-simulateResiduals(pMc)
+plot(simres)
+
+
+#Testing whether Wing_Difference improves model fit
+pMc_null <- lmer(Provisioning ~ Elevation + (1|Year), data = breedCat_moch.p)
+
+anova(pMc_null, pMc, test = "Chisq") ## wing diff does not improve model fit
+
+bcchPp <- 0.55
+
+mochPp <- 0.81
 
 ```
 Adjust the p-values to account for multiple comparisons
 
 ```{r}
-p_values <- c(catPFEM, catPFEB, catPBSM, catPBSB, catPNNM, catPNNB, catPMMM, catPMMB, catPFSM, catPFSB, catPMSM, catPMSB, catPPM, catPPB)
+p_values <- c(bcchFEp, mochFEp, bcchCSp, mochCSp, bcchBSp, mochBSp, bcchMMp, mochMMp, bcchFSp, mochFSp, bcchMSp, mochMSp, bcchPp, mochPp)
 
 p_adjusted <- p.adjust(p_values, method = "BH")
 
@@ -702,212 +910,75 @@ p_adjusted
 ## Plotting wing difference category comparisons
 
 ```{r}
-#moch first egg date ##
-mochBreed.fe.plot <- subset(breed.fe, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
+# ---- packages ----
+library(dplyr)
+library(ggplot2)
+library(patchwork)
 
-boxfe <- ggplot(data=mochBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg_log_Centered)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Date of first egg")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
+sp_cols <- c("MOCH" = "#cc79a7", "BCCH" = "#0072b2")
 
-#moch clutch size ##
-mochBreed.cs.plot <- subset(breed.cs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
+# helper to build a species-comparison boxplot for a given response
+mk_box <- function(df, y, ylab) {
+  ggplot(df, aes(x = Species, y = .data[[y]], fill = Species)) +
+    geom_boxplot(width = 0.7, outlier.shape = NA, alpha = 0.7) +
+    # optional: show raw points (jittered)
+    geom_jitter(aes(color = Species), width = 0.15, alpha = 0.35, size = 0.9, show.legend = FALSE) +
+    scale_fill_manual(values = sp_cols, guide = "none") +
+    scale_color_manual(values = sp_cols, guide = "none") +
+    labs(x = NULL, y = ylab) +
+    facet_wrap(~ Wing_Difference_Category, nrow = 1) +
+    theme_minimal(base_size = 9) +
+    theme(
+      strip.text = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 0, vjust = 0.5),
+      panel.grid.minor = element_blank()
+    )
+}
 
-boxcs <- ggplot(data=mochBreed.cs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Egg_Number)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Clutch Size")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
+# Build per-response boxplots from your already-filtered data frames
+p_fe <- mk_box(
+  bind_rows(breedCat_bcch.fe, breedCat_moch.fe),
+  y = "First.Egg", ylab = "Date of first egg"
+)
 
-#moch brood size ##
-mochBreed.bs.plot <- subset(breed.bs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
+p_cs <- mk_box(
+  bind_rows(breedCat_bcch.cs, breedCat_moch.cs),
+  y = "Egg_Number", ylab = "Clutch size"
+)
 
-boxbs <- ggplot(data=mochBreed.bs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Nestling_Number)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Brood size")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
+p_bs <- mk_box(
+  bind_rows(breedCat_bcch.bs, breedCat_moch.bs),
+  y = "Nestling_Number", ylab = "Brood size"
+)
 
+p_mm <- mk_box(
+  bind_rows(breedCat_bcch.mm, breedCat_moch.mm),
+  y = "Avg_Nestling_Weight", ylab = "Avg. nestling mass (g)"
+)
 
-#moch mean nestling mass ##
-mochBreed.mm.plot <- subset(breed.mm, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
+p_fs <- mk_box(
+  bind_rows(breedCat_bcch.fs, breedCat_moch.fs),
+  y = "Female_SMI", ylab = "Female SMI"
+)
 
-boxmm <-ggplot(data=mochBreed.mm.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Avg_Nestling_Weight)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Mean nestling mass")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
+p_ms <- mk_box(
+  bind_rows(breedCat_bcch.ms, breedCat_moch.ms),
+  y = "Male_SMI", ylab = "Male SMI"
+)
 
-#moch female SMI ##
-mochBreed.fs.plot <- subset(breed.fs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
+p_pr <- mk_box(
+  bind_rows(breedCat_bcch.p, breedCat_moch.p),
+  y = "Provisioning", ylab = "Provisioning rate"
+)
 
-boxfs <- ggplot(data=mochBreed.fs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Female_SMI)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Female body condition")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
+# Combine into a paneled figure (3 x 3 layout; last row has two plots)
+panel_box <- (p_fe + p_cs + p_bs) /
+             (p_mm + p_fs + p_ms) /
+             (p_pr + plot_spacer() + plot_spacer())
 
+# Save
+ggsave("breedCat_species_boxpanels.png", panel_box, width = 10, height = 8, dpi = 300)
 
-#moch male SMI ##
-mochBreed.ms.plot <- subset(breed.ms, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
-
-boxms <- ggplot(data=mochBreed.ms.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Male_SMI)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Male body condition")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-#moch provisioning ##
-mochBreed.p.plot <- subset(breed.p, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("MOCH"))
-
-boxp <- ggplot(data=mochBreed.p.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Provisioning)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Provisioning")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-pMOCH <- (boxfe+boxcs+boxbs+boxmm)/(boxfs+boxms+boxp)
-
-#bcch first egg date ##
-bcchBreed.fe.plot <- subset(breed.fe, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxfebc <- ggplot(data=bcchBreed.fe.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=First.Egg_log_Centered)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Date of first egg")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-#bcch clutch size ##
-bcchBreed.cs.plot <- subset(breed.cs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxcsbc <- ggplot(data=bcchBreed.cs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Egg_Number)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Clutch Size")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-#bcch brood size ##
-bcchBreed.bs.plot <- subset(breed.bs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxbsbc <- ggplot(data=bcchBreed.bs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Nestling_Number)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Brood size")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-
-#bcch mean nestling mass ##
-bcchBreed.mm.plot <- subset(breed.mm, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxmmbc <-ggplot(data=bcchBreed.mm.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Avg_Nestling_Weight)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Mean nestling mass")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-#bcch female SMI ##
-bcchBreed.fs.plot <- subset(breed.fs, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxfsbc <- ggplot(data=bcchBreed.fs.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Female_SMI)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Female body condition")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-
-#bcch male SMI ##
-bcchBreed.ms.plot <- subset(breed.ms, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxmsbc <- ggplot(data=bcchBreed.ms.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Male_SMI)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Male body condition")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-#bcch provisioning ##
-bcchBreed.p.plot <- subset(breed.p, Wing_Difference_Category %in% c("Slightly", "Much")) %>%
-  subset(Species %in% c("BCCH"))
-
-boxpbc <- ggplot(data=bcchBreed.p.plot,aes(x=factor(Wing_Difference_Category, levels = c("Slightly","Much")),y=Provisioning)) +
-  geom_boxplot(aes(fill=Wing_Difference_Category),outlier.alpha = 0) +
-  geom_point(position=position_jitter(width=0.1,height=0),alpha=0.6) +
-  theme_cowplot() + theme(legend.position = "") + scale_fill_manual(values=c("gray","orange")) +
-  xlab("") + ylab("Provisioning")+
-  theme(axis.title = element_text(size = 10))+
-  theme(axis.title.x = element_text(margin = margin(t = 8)))+
-  theme(axis.title.y = element_text(margin = margin(r = 8)))+
-  theme(axis.text = element_text(size=6, color = "black"))
-
-pBCCH <- (boxfebc+boxcsbc+boxbsbc+boxmmbc)/(boxfsbc+boxmsbc+boxpbc)
-
-ggsave("boxplotMOCH.png", plot = pMOCH, width = 7, height = 5, units = "in", dpi = 300)
-ggsave("boxplotBCCH.png", plot = pBCCH, width = 7, height = 5, units = "in", dpi = 300)
 
 
 ```
