@@ -41,7 +41,7 @@ BSpopI <- BSpop %>% distinct(ID, .keep_all = T)
 BSpopI$Year <- as.factor(BSpopI$Year)
 BSpopI$Bander <- as.factor(BSpopI$Bander)
 
-SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander) + (1|Year), data= BSpopI)
+SD1 <- lmer(Wing.Chord ~ Sex*Species + (1|Bander), data= BSpopI)
 
 summary(SD1)
 
@@ -73,7 +73,32 @@ plot(fitted(SDp1), resid(SDp1)); abline(h = 0, col = "red")
 qqnorm(resid(SDp1)); qqline(resid(SDp1), col = "red")
 
 ```
+Testing relationship with elevation
+```{r}
+library(lme4); library(lmerTest); library(dplyr); library(performance)
 
+# population-level, unique individuals
+BSpopI <- BSpop %>% distinct(ID, .keep_all = TRUE)
+
+# helper: run LMM by species & sex
+run_size_elev_lmm <- function(sp, sx) {
+  df <- BSpopI %>% filter(Species == sp, Sex == sx, !is.na(Wing.Chord), !is.na(Elevation))
+  if (nrow(df) < 30) return(NULL)
+  m <- lmer(Wing.Chord ~ scale(Elevation) + (1|Year), data = df)  # scale for interpretability
+  list(sp = sp, sex = sx, model = m, summ = summary(m), r2 = performance::r2(m))
+}
+
+mods <- list(
+  run_size_elev_lmm("MOCH", "F"),
+  run_size_elev_lmm("MOCH", "M"),
+  run_size_elev_lmm("BCCH", "F"),
+  run_size_elev_lmm("BCCH", "M")
+)
+mods
+
+
+
+```
 
 Plotting wing length differences between the sexes in each species
 ```{r}

@@ -119,10 +119,6 @@ simres <-simulateResiduals(feB1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-feB_null <- lmer(First.Egg ~ Elevation + (1|Year), data = bcch_breed.fe)
-
-anova(feB_null, feB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model first egg in MOCH ##
 
@@ -135,10 +131,6 @@ simres <-simulateResiduals(feM1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-feM_null <- lmer(First.Egg ~ Elevation + (1|Year), data = moch_breed.fe)
-
-anova(feM_null, feM1, test = "Chisq") ## wing diff does not improve model fit
 
 bcchFEp <- 0.699
 
@@ -160,10 +152,7 @@ summary(csB1)
 simres_bin <- simulateResiduals(csB1)
 plot(simres_bin) 
 
-#Testing whether Wing_Difference improves model fit
-csB_null <- glmmTMB(Egg_Number ~ Elevation, data = bcch_breed.cs, family = compois)
 
-anova(csB_null, csB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model clutch size in MOCH ##
 
@@ -174,10 +163,7 @@ summary(csM1)
 simres_bin <- simulateResiduals(csM1)
 plot(simres_bin)
 
-#Testing whether Wing_Difference improves model fit
-csM_null <- glmmTMB(Egg_Number ~ Elevation, data = moch_breed.cs, family = compois)
 
-anova(csM_null, csM1, test = "Chisq") ## wing diff does not improve model fit
 
 
 bcchCSp <- 0.55
@@ -197,10 +183,7 @@ summary(bsB1)
 simres_bin <- simulateResiduals(bsB1)
 plot(simres_bin) 
 
-#Testing whether Wing_Difference improves model fit
-bsB_null <- glmmTMB(Nestling_Number ~ Elevation, data = bcch_breed.bs, family = compois)
 
-anova(bsB_null, bsB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model brood size in MOCH ##
 
@@ -211,10 +194,7 @@ summary(bsM1)
 simres_bin <- simulateResiduals(bsM1)
 plot(simres_bin)
 
-#Testing whether Wing_Difference improves model fit
-bsM_null <- glmmTMB(Nestling_Number ~ Elevation, data = moch_breed.bs, family = compois)
 
-anova(bsM_null, bsM1, test = "Chisq") ## wing diff does not improve model fit
 
 
 
@@ -237,10 +217,6 @@ simres <-simulateResiduals(mmB1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-mmB_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = bcch_breed.mm)
-
-anova(mmB_null, mmB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model avg nestling mass in MOCH ##
 
@@ -253,10 +229,6 @@ simres <-simulateResiduals(mmM1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-mmM_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = moch_breed.mm)
-
-anova(mmM_null, mmM1, test = "Chisq") ## wing diff does not improve model fit
 
 
 
@@ -278,10 +250,7 @@ simres <-simulateResiduals(fsB1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-fsB_null <- lm(Female_SMI ~ Elevation, data = bcch_breed.fs)
 
-anova(fsB_null, fsB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model female body condition in MOCH ##
 
@@ -294,10 +263,6 @@ simres <-simulateResiduals(fsM1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-fsM_null <- lm(Female_SMI ~ Elevation, data = moch_breed.fs)
-
-anova(fsM_null, fsM1, test = "Chisq") ## wing diff does not improve model fit
 
 bcchFSp <- 0.664
 
@@ -318,10 +283,7 @@ simres <-simulateResiduals(msB1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-msB_null <- lm(Male_SMI ~ Elevation, data = bcch_breed.ms)
 
-anova(msB_null, msB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model male body condition in MOCH ##
 
@@ -334,10 +296,7 @@ simres <-simulateResiduals(msM1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-msM_null <- lm(Male_SMI ~ Elevation, data = moch_breed.ms)
 
-anova(msM_null, msM1, test = "Chisq") ## wing diff does not improve model fit
 
 
 bcchMSp <- 0.009
@@ -360,10 +319,6 @@ simres <-simulateResiduals(pB1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-pB_null <- lm(Provisioning ~ Elevation, data = bcch_breed.p)
-
-anova(pB_null, pB1, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model male body condition in MOCH ##
 
@@ -376,10 +331,6 @@ simres <-simulateResiduals(pM1)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-pM_null <- lm(Provisioning ~ Elevation, data = moch_breed.p)
-
-anova(msM_null, msM1, test = "Chisq") ## wing diff does not improve model fit
 
 bcchPp <- 0.999
 mochPp <- 0.62
@@ -577,30 +528,44 @@ breedCat_bcch <- subset(breedCat, Species == "BCCH")
 #first egg, removing blank values
 breedCat_bcch.fe <- breedCat_bcch %>% filter(!is.na(First.Egg))
 breedCat_moch.fe <- breedCat_moch %>% filter(!is.na(First.Egg))
+nrow(breedCat_bcch.fe)
+nrow(breedCat_moch.fe)
 
 #clutch size, removing blank values
 breedCat_bcch.cs <- breedCat_bcch %>% filter(!is.na(Egg_Number))
 breedCat_moch.cs <- breedCat_moch %>% filter(!is.na(Egg_Number))
+nrow(breedCat_bcch.cs)
+nrow(breedCat_moch.cs)
     
 #brood size, removing blank values
 breedCat_bcch.bs <- breedCat_bcch %>% filter(!is.na(Nestling_Number))
 breedCat_moch.bs <- breedCat_moch %>% filter(!is.na(Nestling_Number))
+nrow(breedCat_bcch.bs)
+nrow(breedCat_moch.bs)
 
 #nestling size, removing blank values
 breedCat_bcch.mm <- breedCat_bcch %>% filter(!is.na(Avg_Nestling_Weight))
 breedCat_moch.mm <- breedCat_moch %>% filter(!is.na(Avg_Nestling_Weight))
+nrow(breedCat_bcch.mm)
+nrow(breedCat_moch.mm)
 
 #Female SMI, removing blank values
 breedCat_bcch.fs <- breedCat_bcch %>% filter(!is.na(Female_SMI))
 breedCat_moch.fs <- breedCat_moch %>% filter(!is.na(Female_SMI))
+nrow(breedCat_bcch.fs)
+nrow(breedCat_moch.fs)
 
 #Male SMI, removing blank values
 breedCat_bcch.ms <- breedCat_bcch %>% filter(!is.na(Male_SMI))
 breedCat_moch.ms <- breedCat_moch %>% filter(!is.na(Male_SMI))
+nrow(breedCat_bcch.ms)
+nrow(breedCat_moch.ms)
 
 #Provisioning
 breedCat_bcch.p <- breedCat_bcch %>% filter(!is.na(Provisioning))
 breedCat_moch.p <- breedCat_moch %>% filter(!is.na(Provisioning))
+nrow(breedCat_bcch.p)
+nrow(breedCat_moch.p)
 
 ```
 
@@ -619,10 +584,7 @@ simres <-simulateResiduals(feBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-feBc_null <- lmer(First.Egg ~ Elevation + (1|Year), data = breedCat_bcch.fe)
 
-anova(feBc_null, feBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model first egg in MOCH ##
 
@@ -635,10 +597,6 @@ simres <-simulateResiduals(feMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-feMc_null <- lmer(First.Egg ~ Elevation + (1|Year), data = breedCat_moch.fe)
-
-anova(feMc_null, feMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchFEp <- 0.54
 
@@ -663,10 +621,7 @@ simres <-simulateResiduals(csBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-csBc_null <- lmer(Egg_Number ~ Elevation + (1|Year), data = breedCat_bcch.cs)
 
-anova(csBc_null, csBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model clutch size in MOCH ##
 
@@ -679,10 +634,6 @@ simres <-simulateResiduals(csMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-csMc_null <- lmer(Egg_Number ~ Elevation + (1|Year), data = breedCat_moch.cs)
-
-anova(csMc_null, csMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchCSp <- 0.20
 
@@ -704,10 +655,7 @@ simres <-simulateResiduals(bsBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-bsBc_null <- lmer(Nestling_Number ~ Elevation + (1|Year), data = breedCat_bcch.bs)
 
-anova(bsBc_null, bsBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model brood size in MOCH ##
 
@@ -720,10 +668,7 @@ simres <-simulateResiduals(bsMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-bsMc_null <- lmer(Nestling_Number ~ Elevation + (1|Year), data = breedCat_moch.bs)
 
-anova(bsMc_null, bsMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchBSp <- 0.94
 
@@ -745,10 +690,7 @@ simres <-simulateResiduals(mmBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-mmBc_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = breedCat_bcch.mm)
 
-anova(mmBc_null, mmBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model average nestling mass in MOCH ##
 
@@ -761,10 +703,7 @@ simres <-simulateResiduals(mmMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-mmMc_null <- lmer(Avg_Nestling_Weight ~ Elevation + (1|Year), data = breedCat_moch.mm)
 
-anova(mmMc_null, mmMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchMMp <- 0.89
 
@@ -787,10 +726,7 @@ simres <-simulateResiduals(fsBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-fsBc_null <- lmer(Female_SMI ~ Elevation + (1|Year), data = breedCat_bcch.fs)
 
-anova(fsBc_null, fsBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model female SMI in MOCH ##
 
@@ -803,10 +739,7 @@ simres <-simulateResiduals(fsMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-fsMc_null <- lmer(Female_SMI ~ Elevation + (1|Year), data = breedCat_moch.fs)
 
-anova(fsMc_null, fsMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchFSp <- 0.66
 
@@ -828,10 +761,7 @@ simres <-simulateResiduals(msBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-msBc_null <- lmer(Male_SMI ~ Elevation + (1|Year), data = breedCat_bcch.ms)
 
-anova(msBc_null, msBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model male SMI in MOCH ##
 
@@ -844,10 +774,7 @@ simres <-simulateResiduals(msMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-msMc_null <- lmer(Male_SMI ~ Elevation + (1|Year), data = breedCat_moch.ms)
 
-anova(msMc_null, msMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchMSp <- 0.08
 
@@ -869,10 +796,7 @@ simres <-simulateResiduals(pBc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-pBc_null <- lmer(Provisioning ~ Elevation + (1|Year), data = breedCat_bcch.p)
 
-anova(pBc_null, pBc, test = "Chisq") ## wing diff does not improve model fit
 
 ## Model Provisioning in MOCH ##
 
@@ -885,10 +809,7 @@ simres <-simulateResiduals(pMc)
 plot(simres)
 
 
-#Testing whether Wing_Difference improves model fit
-pMc_null <- lmer(Provisioning ~ Elevation + (1|Year), data = breedCat_moch.p)
 
-anova(pMc_null, pMc, test = "Chisq") ## wing diff does not improve model fit
 
 bcchPp <- 0.55
 
