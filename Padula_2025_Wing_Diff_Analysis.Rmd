@@ -341,11 +341,17 @@ mochPp <- 0.62
 Adjust the p-values to account for multiple comparisons
 
 ```{r}
-p_values <- c(bcchFEp, mochFEp, bcchCSp, mochCSp, bcchBSp, mochBSp, bcchMMp, mochMMp, bcchFSp, mochFSp, bcchMSp, mochMSp, bcchPp, mochPp)
+p_values_bcch <- c(bcchFEp, bcchCSp, bcchBSp, bcchMMp, bcchFSp, bcchMSp, bcchPp)
 
-p_adjusted <- p.adjust(p_values, method = "BH")
+p_values_moch <- c(mochFEp, mochCSp, mochBSp, mochMMp, mochFSp, mochMSp, mochPp)
 
-p_adjusted
+p_adjusted_bcch <- p.adjust(p_values_bcch, method = "BH")
+
+p_adjusted_moch <- p.adjust(p_values_moch, method = "BH")
+
+p_adjusted_bcch
+
+p_adjusted_moch
 
 ```
 
@@ -612,7 +618,7 @@ mochFEp <- 0.33
 ```{r}
 ## Model clutch size in BCCH ##
 
-csBc <- lmer(Egg_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.cs)
+csBc <- lm(Egg_Number ~ Wing_Difference_Category + Elevation, data = breedCat_bcch.cs)
 
 summary(csBc)
 r2(csBc)
@@ -646,15 +652,13 @@ mochCSp <- 0.37
 ```{r}
 ## Model brood size in BCCH ##
 
-bsBc <- lmer(Nestling_Number ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.bs)
+bsBc <- lm(Nestling_Number ~ Wing_Difference_Category + Elevation, data = breedCat_bcch.bs)
 
 summary(bsBc)
 r2(bsBc)
 check_model(bsBc)
 simres <-simulateResiduals(bsBc)
 plot(simres)
-
-
 
 
 ## Model brood size in MOCH ##
@@ -717,7 +721,7 @@ mochMMp <- 0.009
 ```{r}
 ## Model female SMI in BCCH ##
 
-fsBc <- lmer(Female_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.fs)
+fsBc <- lm(Female_SMI ~ Wing_Difference_Category + Elevation, data = breedCat_bcch.fs)
 
 summary(fsBc)
 r2(fsBc)
@@ -730,7 +734,7 @@ plot(simres)
 
 ## Model female SMI in MOCH ##
 
-fsMc <- lmer(Female_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.fs)
+fsMc <- lm(Female_SMI ~ Wing_Difference_Category + Elevation, data = breedCat_moch.fs)
 
 summary(fsMc)
 r2(fsMc)
@@ -752,7 +756,7 @@ mochFSp <- 0.83
 ```{r}
 ## Model male SMI in BCCH ##
 
-msBc <- lmer(Male_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.ms)
+msBc <- lm(Male_SMI ~ Wing_Difference_Category + Elevation, data = breedCat_bcch.ms)
 
 summary(msBc)
 r2(msBc)
@@ -765,7 +769,7 @@ plot(simres)
 
 ## Model male SMI in MOCH ##
 
-msMc <- lmer(Male_SMI ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_moch.ms)
+msMc <- lm(Male_SMI ~ Wing_Difference_Category + Elevation, data = breedCat_moch.ms)
 
 summary(msMc)
 r2(msMc)
@@ -787,7 +791,7 @@ mochMSp <- 0.49
 ```{r}
 ## Model provisioning in BCCH ##
 
-pBc <- lmer(Provisioning ~ Wing_Difference_Category + Elevation + (1|Year), data = breedCat_bcch.p)
+pBc <- lm(Provisioning ~ Wing_Difference_Category + Elevation, data = breedCat_bcch.p)
 
 summary(pBc)
 r2(pBc)
@@ -819,11 +823,17 @@ mochPp <- 0.81
 Adjust the p-values to account for multiple comparisons
 
 ```{r}
-p_values <- c(bcchFEp, mochFEp, bcchCSp, mochCSp, bcchBSp, mochBSp, bcchMMp, mochMMp, bcchFSp, mochFSp, bcchMSp, mochMSp, bcchPp, mochPp)
+p_values_bcch <- c(bcchFEp, bcchCSp, bcchBSp, bcchMMp, bcchFSp, bcchMSp, bcchPp)
 
-p_adjusted <- p.adjust(p_values, method = "BH")
+p_values_moch <- c(mochFEp, mochCSp, mochBSp, mochMMp, mochFSp, mochMSp, mochPp)
 
-p_adjusted
+p_adjusted_bcch <- p.adjust(p_values_bcch, method = "BH")
+
+p_adjusted_moch <- p.adjust(p_values_moch, method = "BH")
+
+p_adjusted_bcch
+
+p_adjusted_moch
 
 ```
 

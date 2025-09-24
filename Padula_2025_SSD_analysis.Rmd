@@ -72,6 +72,13 @@ r2(SDp1)
 plot(fitted(SDp1), resid(SDp1)); abline(h = 0, col = "red")
 qqnorm(resid(SDp1)); qqline(resid(SDp1), col = "red")
 
+
+
+BS$Species <- relevel(factor(BS$Species), ref = "MOCH")
+m_moch <- lmer(Wing_Difference ~ Species + (1|Year), data = BS)
+summary(m_moch)  # Intercept = MOCH mean diff (+ p vs 0)
+
+
 ```
 Testing relationship with elevation
 ```{r}
